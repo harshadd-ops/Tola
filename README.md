@@ -41,7 +41,7 @@ Theme 2: Jeweltech (Problem Statement PS 2.2) · Track: Agentic AI · Powered by
 | Field | Specification |
 | :--- | :--- |
 | **Event** | **Tech4Bharat — GAVS Hackathon 2026** (*JanAI — Mass Entrepreneurship Challenge*) |
-| **Theme & Problem Statement** | **Theme 2: Jeweltech · Problem Statement PS 2.2** — * Informal Gold Job-Work, Karigar Accountability & Financial Inclusion* |
+| **Theme & Problem Statement** | **Theme 2: Jeweltech · Problem Statement PS 2.2** — *Informal Gold Job-Work, Karigar Accountability & Financial Inclusion* |
 | **Primary Track** | **Agentic AI** (Governed multi-agent orchestration + native Indic speech interface + deterministic cryptographic ledger) |
 | **Sponsor Integrations** | **Lyzr Agent Studio** (`lyzr-adk 0.1.12` — `Manager`, `IntakeAgent`, `ReconcileAgent`, `SettleAgent`) and **Sarvam AI** (`sarvamai 0.1.37` — `Saaras v3/v4` STT & `Bulbul v3` TTS across `bn-IN`, `hi-IN`, `kn-IN`, `en-IN`) |
 | **Repository Architecture** | Shared product/engineering specifications ([`docs/`](MAP.md), [`api/openapi.yaml`](api/openapi.yaml)) + two implementation tracks: [`implementation/demo/`](implementation/demo/CLAUDE.md) (built stage prototype) and [`implementation/scalable/`](implementation/scalable/CLAUDE.md) (production multi-tenant architecture) |
