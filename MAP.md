@@ -24,7 +24,13 @@ TECH4BHARAT_GAVS_TOLA/
 │  │  ├─ PROJECT_BRIEF.md     ★ single source of truth: IDs, stack, env, canonical demo numbers
 │  │  ├─ VISION.md            north star, 1/5/10-year picture, why now
 │  │  ├─ PITCH.md             3-min script, demo clicks, fallbacks, Q&A bank per judge
-│  │  └─ HACKATHON_PLAN.md    timeline to 27 Dec, roles, cut list, submission checklist
+│  │  ├─ HACKATHON_PLAN.md    timeline to 27 Dec, roles, cut list, submission checklist
+│  │  └─ TOLA_Pitch_Deck.pdf · TOLA_Pitch_Deck.pptx   12-slide JanAI / Tech4Bharat pitch deck
+│  ├─ assets/                 ── VISUAL ASSETS, SCREENSHOTS & DIAGRAMS ──
+│  │  ├─ branding/            Tola emblem (`tola-emblem.png`) & hero banner (`tola-hero-banner.png`)
+│  │  ├─ architecture/        6-layer system architecture, tech stack, DAG, prism & roadmap diagrams
+│  │  ├─ screenshots/         high-DPI live prototype captures (`01`–`06`) & UX overview cards
+│  │  └─ slides/              12 rendered pitch deck slide PNGs (`slide-01.png`…`slide-12.png`)
 │  ├─ 01-product/
 │  │  ├─ PRD.md               requirements and acceptance per F-01…F-14, NFRs, release criteria
 │  │  ├─ PERSONAS.md          P-01…P-05 with sourced research
@@ -46,14 +52,17 @@ TECH4BHARAT_GAVS_TOLA/
 │  ├─ 06-security-compliance/ SECURITY_ARCHITECTURE · THREAT_MODEL · PRIVACY (DPDP) · COMPLIANCE · RISK_REGISTER (R-01…R-32)
 │  ├─ 07-business/            BUSINESS_MODEL · GTM · FINANCIALS · IMPACT
 │  └─ 08-project/             BACKLOG (TOLA-xxx) · TEAM (RACI) · GLOSSARY
+├─ scripts/
+│  ├─ generate_tola_assets.py deterministic vector & RGBA visual generator for Tola diagrams
+│  └─ build_tola_pitch_deck.py 12-slide 16:9 PPTX pitch deck compiler
 └─ implementation/
    ├─ demo/                   ── STAGE PROTOTYPE: no login, role switcher, story mode ──
    │  ├─ README.md · CLAUDE.md · .env.example · docker-compose.yml
    │  ├─ docs/                DEMO_SPEC ★ · FRONTEND · BACKEND · TESTING · DEPLOYMENT · ENVIRONMENT_SETUP · CODING_STANDARDS
-   │  ├─ apps/web/            Next.js 16 app: package.json, next/postcss config, Dockerfile, src/styles/tokens.css, src/lib/springs.ts
-   │  ├─ services/api/        FastAPI: pyproject.toml, Dockerfile
-   │  ├─ seed/story.json      the scripted week (S01–S13), integer mg, demo keys
-   │  ├─ scripts/ · tests/    (empty, to be filled in the prototype weeks)
+   │  ├─ apps/web/            Next.js 16.4 app: HeroUI v3.2 + Tailwind 4.3 + Motion 14.4 + Playwright E2E
+   │  ├─ services/api/        FastAPI 0.153 + SQLite + ledger-core (integer mg, RFC 8785 JCS, Ed25519)
+   │  ├─ seed/                story.json (S01–S13), audio/ (Sarvam Bulbul/Saaras clips), ai-cache/
+   │  └─ scripts/ · tests/    bake_audio.py, bake_ai_cache.py, stage-check.sh, canonical-vectors.json
    └─ scalable/               ── PRODUCTION PATH ──
       ├─ README.md · CLAUDE.md · .env.example · package.json · pnpm-workspace.yaml
       ├─ docs/                FRONTEND · BACKEND · CODING_STANDARDS · GIT_WORKFLOW · TESTING · PERFORMANCE · ENVIRONMENT_SETUP
