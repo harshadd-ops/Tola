@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/branding/tola-logo-badge.png" alt="Tola" width="76" />
+<img src="docs/assets/branding/tola-mark.svg" alt="Tola" width="68" />
 
 # Tola
 
