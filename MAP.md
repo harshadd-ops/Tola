@@ -27,10 +27,9 @@ TECH4BHARAT_GAVS_TOLA/
 │  │  ├─ HACKATHON_PLAN.md    timeline to 27 Dec, roles, cut list, submission checklist
 │  │  └─ TOLA_Pitch_Deck.pdf · TOLA_Pitch_Deck.pptx   12-slide JanAI / Tech4Bharat pitch deck
 │  ├─ assets/                 ── VISUAL ASSETS, SCREENSHOTS & DIAGRAMS ──
-│  │  ├─ branding/            Tola emblem (`tola-emblem.png`) & hero banner (`tola-hero-banner.png`)
-│  │  ├─ architecture/        6-layer system architecture, tech stack, DAG, prism & roadmap diagrams
-│  │  ├─ screenshots/         high-DPI live prototype captures (`01`–`06`) & UX overview cards
-│  │  └─ slides/              12 rendered pitch deck slide PNGs (`slide-01.png`…`slide-12.png`)
+│  │  ├─ branding/            Tola emblem (`tola-emblem.png`, `tola-logo-badge.png`) & walkthrough video frame (`demo-video-banner.png`)
+│  │  ├─ architecture/        Vector DAG & prism architecture assets (`ledger-core-dag.png`, `tola-prism.png`)
+│  │  └─ screenshots/         Retina live stage prototype captures (`01-stage-issue-sealed.png`…`06-stage-chain-verifier.png`)
 │  ├─ 01-product/
 │  │  ├─ PRD.md               requirements and acceptance per F-01…F-14, NFRs, release criteria
 │  │  ├─ PERSONAS.md          P-01…P-05 with sourced research
