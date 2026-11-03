@@ -1,0 +1,14 @@
+{
+  "step_id": "S05",
+  "lang": "en",
+  "explanation": "Order #14 lost 1.380 g against an agreed 1.000 g (2.50% of 40.000 g). That is 0.380 g over the norm, 0.348 g of fine gold, about ₹5,188 at today's rate. Rafiq's return note mentions a cracked solder joint that was redone. Orders #12 and #13 closed inside their norms. Suggest asking Rafiq before settlement.",
+  "explanation_by_lang": {
+    "en": "Order #14 lost 1.380 g against an agreed 1.000 g (2.50% of 40.000 g). That is 0.380 g over the norm, 0.348 g of fine gold, about ₹5,188 at today's rate. Rafiq's return note mentions a cracked solder joint that was redone. Orders #12 and #13 closed inside their norms. Suggest asking Rafiq before settlement.",
+    "bn": "অর্ডার #১৪-এ অনুমোদিত ১.০০০ গ্রামের বিপরীতে ১.৩৮০ গ্রাম ঘাটতি হয়েছে (সীমার উপরে ০.৩৮০ গ্রাম বা ০.৩৪৮ গ্রাম খাঁটি সোনা, আনুমানিক ₹৫,১৮৮)। রফিকের রিটার্ন নোটে ঝালাইয়ের জোড় মেরামতের উল্লেখ আছে।",
+    "kn": "ಆರ್ಡರ್ #14 ರಲ್ಲಿ ಒಪ್ಪಿದ 1.000 g ಮಿತಿಗೆ ವಿರುದ್ಧವಾಗಿ 1.380 g ನಷ್ಟವಾಗಿದೆ (+0.380 g ಹೆಚ್ಚುವರಿ, 0.348 g ಶುದ್ಧ ಚಿನ್ನ, ಸುಮಾರು ₹5,188). ರಫೀಕ್ ಅವರ ಟಿಪ್ಪಣಿಯಲ್ಲಿ ಬೆಸುಗೆ ಮರುಕೆಲಸದ ಉಲ್ಲೇಖವಿದೆ.",
+    "hi": "ऑर्डर #14 में तय 1.000 ग्राम की तुलना में 1.380 ग्राम की कमी हुई (+0.380 ग्राम अधिक, 0.348 ग्राम शुद्ध सोना, लगभग ₹5,188)। रफ़ीक के रिटर्न नोट में जोड़ की दोबारा मरम्मत का ज़िक्र है।"
+  },
+  "model": "lyzr:reconcile-agent",
+  "source": "cached",
+  "cached": true
+}

@@ -1,0 +1,37 @@
+# pnpm workspace for implementation/scalable (Tola v1).
+# JS/TS packages only. Python lives in services/api (uv) and packages/ledger-core/py.
+packages:
+  - "apps/*"
+  - "packages/ui"
+  - "packages/ledger-core/ts"
+
+# Shared versions for every workspace package (pnpm catalogs).
+# Versions checked with `npm view` on 2026-10-20; see docs/03-engineering/TECH_STACK.md.
+catalog:
+  next: 16.4.2
+  react: 19.3.1
+  react-dom: 19.3.1
+  typescript: ~5.9.0
+  "@heroui/react": ^3.2.0
+  "@heroui/styles": ^3.2.0
+  tailwindcss: ^4.3.0
+  motion: ^14.4.0
+  next-intl: 4.14.9
+  dexie: 4.4.6
+  "@serwist/next": 9.5.13
+  serwist: 9.5.13
+  zustand: ^5.0.0
+  "@tanstack/react-query": ^5.0.0
+  zod: 4.6.7
+  "@noble/ed25519": 3.2.0
+  vitest: 5.0.5
+  "@playwright/test": 1.64.1
+  "@axe-core/playwright": 4.14.0
+  fake-indexeddb: 6.2.6
+
+# Fail installs on peer-dependency mismatches instead of silently resolving them.
+strictPeerDependencies: true
+# Build scripts allowed to run on install (supply-chain hardening).
+onlyBuiltDependencies:
+  - esbuild
+  - sharp

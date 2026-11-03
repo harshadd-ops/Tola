@@ -1,0 +1,167 @@
+# Tola v1 API + worker (modular monolith). One codebase, two entrypoints:
+#   uvicorn tola_api.main:app   -> HTTP API on port 8000 (Cloud Run service "api")
+#   tola-worker                 -> RQ worker + scheduler  (Cloud Run service "worker")
+# Versions checked with `pip index versions` on 2026-10-20.
+
+[project]
+name = "tola-api"
+version = "0.1.0"
+description = "Tola v1 API: dual-signed, hash-chained gold job-work ledger."
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+license = { text = "UNLICENSED" }
+authors = [{ name = "Tola team" }]
+dependencies = [
+  # Web
+  "fastapi>=0.153,<0.154",
+  "uvicorn[standard]>=0.54,<0.55",
+  "pydantic>=2.14,<3",
+  "pydantic-settings>=2.16,<3",
+  "python-multipart>=0.0.32",          # voice-note uploads (API-10)
+  # Data
+  "sqlalchemy[asyncio]>=2.1,<2.2",
+  "alembic>=1.20,<1.21",
+  "asyncpg>=0.32,<0.33",               # runtime driver (async)
+  "psycopg[binary]>=3.3,<3.4",         # Alembic migrations + RLS session setup (sync)
+  # Jobs
+  "redis>=8.1,<9",
+  "rq>=2.12,<3",
+  # Crypto
+  "pynacl>=1.6,<1.7",                  # Ed25519 verify (+ server checkpoint signing)
+  # AI partners
+  "lyzr-adk==0.1.12",                  # M-03 agents
+  "sarvamai==0.1.37",                  # M-01 STT (saaras:v3), M-02 TTS (Bulbul v3)
+  # HTTP + observability
+  "httpx>=0.28,<0.29",
+  "structlog>=26.1",
+  "opentelemetry-sdk>=1.45,<2",
+  "opentelemetry-exporter-otlp>=1.45,<2",
+  # Shared deterministic ledger maths (integer mg; never floats)
+  "tola-ledger-core",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=9.1,<10",
+  "pytest-asyncio>=1.4,<2",
+  "pytest-cov>=7.1",
+  "hypothesis>=6.170",
+  "schemathesis>=4.32,<5",
+  "respx>=0.23",                       # mock Lyzr/Sarvam/PSP HTTP
+  "freezegun>=1.5",                    # weekly-reconcile time travel
+  "testcontainers[postgres,redis]>=4.15",
+  "ruff>=0.17,<0.18",
+  "mypy>=2.4,<3",
+  "bandit>=1.9",
+  "pip-audit>=2.10",
+  "pre-commit>=4.7",
+]
+
+[project.scripts]
+tola-worker = "tola_api.worker.main:run"
+tola-verify-chains = "tola_api.ledger.jobs:verify_all_chains_cli"
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tola_api"]
+
+[tool.uv]
+default-groups = ["dev"]
+
+[tool.uv.sources]
+tola-ledger-core = { path = "../../packages/ledger-core/py", editable = true }
+
+# ---------------------------------------------------------------- ruff
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+extend-exclude = ["migrations/versions"]
+
+[tool.ruff.lint]
+select = [
+  "E", "W", "F",     # pycodestyle, pyflakes
+  "I",               # isort
+  "B",               # bugbear
+  "UP",              # pyupgrade
+  "S",               # bandit-style security
+  "N",               # naming
+  "C4", "SIM", "RET",
+  "DTZ",             # no naive datetimes (all timestamps are UTC, shown in IST)
+  "T20",             # no print(); use structlog
+  "ASYNC",
+  "PL",              # pylint subset
+  "RUF",
+  "TID",             # tidy imports (bans below)
+  "FBT",             # no boolean positional traps
+  "ERA",             # no commented-out code
+]
+ignore = ["PLR0913", "PLR2004"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "PLR2004", "FBT"]
+"src/tola_api/scripts/**" = ["T20"]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"random".msg = "Use secrets for tokens/OTPs; Hypothesis/Faker for tests."
+"logging.getLogger".msg = "Use tola_api.core.logging.get_logger (PII redaction)."
+
+[tool.ruff.lint.isort]
+known-first-party = ["tola_api", "tola_ledger_core"]
+
+[tool.ruff.format]
+quote-style = "double"
+docstring-code-format = true
+
+# ---------------------------------------------------------------- mypy
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+warn_unreachable = true
+disallow_any_explicit = false
+mypy_path = "src"
+files = ["src"]
+
+[[tool.mypy.overrides]]
+module = ["rq.*", "lyzr.*", "sarvamai.*", "nacl.*"]
+ignore_missing_imports = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+
+# ---------------------------------------------------------------- pytest
+[tool.pytest.ini_options]
+minversion = "9.0"
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = [
+  "-ra",
+  "--strict-markers",
+  "--cov=tola_api",
+  "--cov-report=term-missing",
+  "--cov-fail-under=85",
+]
+markers = [
+  "integration: needs Postgres 16 + Redis 7 (docker compose or testcontainers)",
+  "ai_live: calls real Lyzr/Sarvam; skipped unless AI_FALLBACK_MODE=live",
+  "security: authz matrix / abuse-case tests",
+  "slow: > 2 s",
+]
+filterwarnings = ["error"]
+
+# Hypothesis profiles are registered in tests/conftest.py: dev (100 examples), ci (1000), nightly (20000).
+# Float ban on gold maths is enforced by the semgrep rule tola-no-float-grams (see docs/CODING_STANDARDS.md).
+
+[tool.coverage.run]
+branch = true
+source = ["tola_api"]
+omit = ["src/tola_api/scripts/*", "src/tola_api/migrations/*"]
+
+[tool.bandit]
+exclude_dirs = ["tests"]

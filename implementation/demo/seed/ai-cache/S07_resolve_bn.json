@@ -1,0 +1,11 @@
+{
+  "step_id": "S07",
+  "lang": "bn",
+  "text": "অর্ডার চোদ্দোর সমাধান প্রস্তাব: শূন্য দশমিক এক তিন শূন্য গ্রাম ঝালাইয়ের ছাড়। বাকি শূন্য দশমিক দুই পাঁচ শূন্য গ্রাম (শূন্য দশমিক দুই দুই নয় গ্রাম খাঁটি সোনা) আপনার খাতায় থাকবে।",
+  "en": "Both accept 0.130 g as rework wastage. 0.250 g gross (0.229 g fine) stays on Rafiq's balance.",
+  "audio_url": "/v1/demo/audio/S07_proposal_bn.mp3",
+  "duration_ms": 4600,
+  "model": "bulbul:v3",
+  "source": "cached",
+  "cached": true
+}

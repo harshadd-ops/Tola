@@ -1,0 +1,13 @@
+{
+  "step_id": "S06",
+  "lang": "bn",
+  "transcript": "ঝালাইয়ের জোড় ফেটে গেছিল, পুরো জোড় আবার করতে হয়েছে। ওতে সোনা গেছে, আমি পুরোটা দেব না।",
+  "en": "The solder joint cracked, I had to redo the whole joint. Gold went in that, I won't pay all of it.",
+  "confidence": 0.93,
+  "reason_code": "REWORK",
+  "disputed_variance_mg": 380,
+  "audio_url": "/v1/demo/audio/S06_flag_bn.mp3",
+  "model": "saaras:v3",
+  "source": "cached",
+  "cached": true
+}

@@ -1,0 +1,181 @@
+/*
+ * Vakyam design tokens — Sarvam design language
+ * Warm off-white editorial canvas, serif display + grotesk body, hairlines over shadows,
+ * brand colour delivered as blurred light (ember → amber → periwinkle), indigo as the working accent.
+ */
+:root,
+.light,
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* Light-as-colour primitives */
+  --orange: #f9730c;
+  --amber: #ffb053;
+  --peri: #a5bbfc;
+  --mist: #f4f7ff;
+
+  /* Indigo ramp (working accent) */
+  --indigo-50: #fafcff;
+  --indigo-100: #e8effc;
+  --indigo-200: #d2dff9;
+  --indigo-300: #a7c0f1;
+  --indigo-400: #81a0e9;
+  --indigo-500: #6a88e2;
+  --indigo-600: #556adc;
+  --indigo-700: #4250d5;
+  --indigo-800: #3333cc;
+  --indigo-900: #212191;
+
+  /* Supporting hues for chips & glyphs */
+  --green-50: #f2f8eb;
+  --green-200: #c8e4b0;
+  --green-600: #4f7f1f;
+  --pink-50: #fceaf0;
+  --pink-200: #efabc5;
+  --pink-600: #b8306f;
+  --yellow-50: #fff8e6;
+  --yellow-200: #ffe8b7;
+  --yellow-700: #8a5d10;
+  --orange-50: #fffbfa;
+  --orange-200: #fddcce;
+  --orange-700: #a5460f;
+
+  /* Neutrals */
+  --bg: #fcfcfc;
+  --bg-2: #f5f5f5;
+  --bg-3: #f0f0f0;
+  --bg-4: #e6e6e6;
+  --card: #ffffff;
+  --ink: #1f1f1f;
+  --ink-2: #3d3d3d;
+  --ink-3: #666666;
+  --hairline: #f0f0f0;
+  --hairline-strong: #e6e6e6;
+  --slate: #2a2c33;
+  --nav: #ffffff;
+  --shadow-card-hover: 0 1px 2px rgba(33, 33, 90, 0.05), 0 14px 36px -12px rgba(33, 33, 145, 0.16);
+  --shadow-surface: 0 1px 2px rgba(33, 33, 90, 0.04), 0 28px 64px -28px rgba(33, 33, 145, 0.16);
+  --shadow-device: 0 2px 4px rgba(0, 0, 0, 0.05), 0 50px 90px -30px rgba(33, 33, 145, 0.35);
+
+  /* Radius scale — nested surfaces use (outer − padding) so corners stay concentric */
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --r-xl: 32px;
+
+  /* HeroUI semantic mapping */
+  --background: var(--bg);
+  --foreground: var(--ink);
+  --surface: var(--card);
+  --surface-foreground: var(--ink);
+  --surface-secondary: var(--bg-2);
+  --surface-secondary-foreground: var(--ink);
+  --surface-tertiary: var(--bg-3);
+  --surface-tertiary-foreground: var(--ink);
+  --overlay: #ffffff;
+  --overlay-foreground: var(--ink);
+  --muted: var(--ink-3);
+  --default: var(--bg-2);
+  --default-foreground: var(--ink);
+  --accent: var(--slate);
+  --accent-foreground: #ffffff;
+  --warning: var(--orange);
+  --warning-foreground: var(--ink);
+  --success: oklch(0.62 0.15 150);
+  --success-foreground: #ffffff;
+  --segment: #ffffff;
+  --segment-foreground: var(--indigo-800);
+  --border: var(--hairline-strong);
+  --separator: var(--hairline);
+  --focus: var(--indigo-600);
+  --link: var(--indigo-800);
+  --radius: 1rem;
+  --surface-shadow: none;
+  --overlay-shadow: 0 0 40px rgba(0, 0, 0, 0.06), 0 0 0 1px var(--hairline);
+
+  --font-display: "Fraunces Variable", "Mukta", Georgia, serif;
+  --font-sans: "Figtree Variable", "Mukta", "Roboto", system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, monospace;
+
+  /* Motion tokens */
+  --ease-cw: cubic-bezier(0.2, 0, 0, 1);
+  --ease-reveal: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-nav: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --orange: #ff7f24;
+  --amber: #ffb86b;
+  --peri: #a5bbfc;
+  --mist: #0e1020;
+
+  --indigo-50: #12142a;
+  --indigo-100: #181b38;
+  --indigo-200: #2a3070;
+  --indigo-300: #4a57b8;
+  --indigo-600: #8fa3f2;
+  --indigo-800: #b4c3ff;
+  --indigo-900: #c9d5ff;
+
+  --green-50: #142012;
+  --green-200: #2c4a1e;
+  --green-600: #a8d68a;
+  --pink-50: #2a1420;
+  --pink-200: #5a2a42;
+  --pink-600: #f2a6c6;
+  --yellow-50: #261f0e;
+  --yellow-200: #4d3d14;
+  --yellow-700: #ffd27a;
+  --orange-50: #26150c;
+  --orange-200: #55301a;
+  --orange-700: #ffb07a;
+
+  --bg: #0c0c0f;
+  --bg-2: #141418;
+  --bg-3: #1b1b20;
+  --bg-4: #26262c;
+  --card: #141418;
+  --ink: #f2f2f4;
+  --ink-2: #c9c9cf;
+  --ink-3: #9a9aa3;
+  --hairline: #222228;
+  --hairline-strong: #2c2c33;
+  --slate: #f2f2f4;
+  --nav: #0c0c0f;
+  --shadow-card-hover: 0 1px 2px rgba(0, 0, 0, 0.5), 0 14px 36px -12px rgba(0, 0, 0, 0.7);
+  --shadow-surface: 0 0 0 1px rgba(255, 255, 255, 0.02), 0 28px 64px -28px rgba(0, 0, 0, 0.75);
+  --shadow-device: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 50px 100px -30px rgba(165, 187, 252, 0.25);
+
+  --background: var(--bg);
+  --foreground: var(--ink);
+  --surface: var(--card);
+  --surface-foreground: var(--ink);
+  --surface-secondary: var(--bg-3);
+  --surface-secondary-foreground: var(--ink);
+  --surface-tertiary: var(--bg-4);
+  --surface-tertiary-foreground: var(--ink);
+  --overlay: #18181c;
+  --overlay-foreground: var(--ink);
+  --muted: var(--ink-3);
+  --default: var(--bg-3);
+  --default-foreground: var(--ink);
+  --accent: #f2f2f4;
+  --accent-foreground: #0c0c0f;
+  --warning: var(--orange);
+  --warning-foreground: #000000;
+  --segment: #2a2a31;
+  --segment-foreground: var(--ink);
+  --border: var(--hairline-strong);
+  --separator: var(--hairline);
+  --focus: var(--indigo-600);
+  --link: var(--indigo-800);
+}
+
+/* Devanagari: Mukta carries both faces when Marathi is active */
+html[lang="mr"] {
+  --font-display: "Mukta", "Fraunces Variable", serif;
+  --font-sans: "Mukta", "Figtree Variable", system-ui, sans-serif;
+}

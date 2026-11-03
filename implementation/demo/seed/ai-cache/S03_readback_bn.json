@@ -1,0 +1,12 @@
+{
+  "step_id": "S03",
+  "lang": "bn",
+  "text": "অর্ডার চোদ্দো। চল্লিশ দশমিক শূন্য শূন্য শূন্য গ্রাম সোনা, বাইশ ক্যারেট, জমা হলো। ঘাটতির সীমা দুই দশমিক পাঁচ শতাংশ, মানে এক গ্রাম।",
+  "translit": "Order choddo. Chollish doshomik shunyo shunyo shunyo gram sona, baish carat, jama holo. Ghatir sima dui doshomik panch shotangsho, mane ek gram.",
+  "en": "Order 14. 40.000 grams of gold, 22 carat, received. Wastage limit 2.5 percent, that is 1 gram.",
+  "audio_url": "/v1/demo/audio/S03_readback_bn.mp3",
+  "duration_ms": 4800,
+  "model": "bulbul:v3",
+  "source": "cached",
+  "cached": true
+}

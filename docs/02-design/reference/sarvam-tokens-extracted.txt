@@ -1,0 +1,157 @@
+--color-sr-black:#141414
+--color-sr-green-1000:#152605
+--color-sr-green-100:#e3f1d8
+--color-sr-green-200:#c8e4b0
+--color-sr-green-300:#acd587
+--color-sr-green-400:#90c85b
+--color-sr-green-500:#83c040
+--color-sr-green-50:#f2f8eb
+--color-sr-green-600:#6ea335
+--color-sr-green-700:#496d21
+--color-sr-green-800:#385418
+--color-sr-green-900:#263d0e
+--color-sr-grey-100:#f5f5f5
+--color-sr-grey-200:#f0f0f0
+--color-sr-grey-300:#e6e6e6
+--color-sr-grey-400:#ccc
+--color-sr-grey-500:#b3b3b3
+--color-sr-grey-50:#f9f9f9
+--color-sr-grey-600:#999
+--color-sr-grey-700:#666
+--color-sr-grey-800:#525252
+--color-sr-grey-900:#3d3d3d
+--color-sr-grey-950:#292929
+--color-sr-indigo-100:#e8effc
+--color-sr-indigo-200:#d2dff9
+--color-sr-indigo-300:#a7c0f1
+--color-sr-indigo-400:#81a0e9
+--color-sr-indigo-500:#6a88e2
+--color-sr-indigo-50:#fafcff
+--color-sr-indigo-600:#556adc
+--color-sr-indigo-700:#4250d5
+--color-sr-indigo-800:#33c
+--color-sr-indigo-900:#212191
+--color-sr-indigo-950:#11115b
+--color-sr-orange-100:#feede6
+--color-sr-orange-200:#fddcce
+--color-sr-orange-300:#f9bb9e
+--color-sr-orange-400:#f59970
+--color-sr-orange-500:#f38858
+--color-sr-orange-50:#fffbfa
+--color-sr-orange-600:#ee7944
+--color-sr-orange-700:#e96c2f
+--color-sr-orange-800:#e6651b
+--color-sr-orange-900:#a5460f
+--color-sr-orange-950:#682906
+--color-sr-pink-100:#f9d5e1
+--color-sr-pink-200:#efabc5
+--color-sr-pink-300:#e380a8
+--color-sr-pink-400:#d4508e
+--color-sr-pink-500:#b12060
+--color-sr-pink-50:#fceaf0
+--color-sr-pink-600:#9d2055
+--color-sr-pink-700:#871f4b
+--color-sr-pink-800:#731e3f
+--color-sr-pink-900:#611c35
+--color-sr-pink-950:#4d192c
+--color-sr-red-1000:#3e140b
+--color-sr-red-100:#f8d1c6
+--color-sr-red-200:#eba18f
+--color-sr-red-300:#db715c
+--color-sr-red-400:#c43d2b
+--color-sr-red-500:#b81514
+--color-sr-red-50:#fde7e2
+--color-sr-red-600:#a21913
+--color-sr-red-700:#781a11
+--color-sr-red-800:#781a11
+--color-sr-red-900:#52170e
+--color-sr-slate:#2a2c33
+--color-sr-white:#fff
+--color-sr-yellow-100:#fff0cf
+--color-sr-yellow-200:#ffe8b7
+--color-sr-yellow-300:#ffcb79
+--color-sr-yellow-400:#ffb94a
+--color-sr-yellow-500:#feb12b
+--color-sr-yellow-50:#fff8e6
+--color-sr-yellow-600:#df9c2a
+--color-sr-yellow-700:#c08827
+--color-sr-yellow-800:#a27224
+--color-sr-yellow-900:#6b4c1c
+--color-sr-yellow-950:#362813
+--ease-in-out:cubic-bezier(.4,0,.2,1)
+--ease-in:cubic-bezier(.4,0,1,1)
+--ease-out:cubic-bezier(0,0,.2,1)
+--font-matter-mono:"Matter Mono",monospace
+--font-matter-semi-mono:"Matter Semi Mono",monospace
+--font-matter:"Matter",sans-serif
+--font-season-mix:"Season Mix",sans-serif
+--font-weight-black:1000
+--font-weight-black:900
+--font-weight-bold:700
+--font-weight-bold:725
+--font-weight-bold:780
+--font-weight-extrabold:800
+--font-weight-extrabold:900
+--font-weight-light:300
+--font-weight-light:325
+--font-weight-medium:500
+--font-weight-medium:525
+--font-weight-normal:400
+--font-weight-normal:425
+--font-weight-semibold:600
+--font-weight-semibold:625
+--font-weight-semibold:670
+--font-weight-thin:100
+--font-weight-thin:300
+--radius-2xl:1rem
+--radius-3xl:1.5rem
+--radius-4xl:32px
+--radius-card-lg:var(--radius-4xl)
+--radius-card:var(--radius-2xl)
+--radius-lg:.5rem
+--radius-md:.375rem
+--radius-sm:.25rem
+--radius-xl:.75rem
+--radius-xs:.125rem
+--shadow-ambient-lg:0 12px 40px -8px #0000001f
+--shadow-ambient-md:0 4px 24px #0000001f
+--shadow-ambient-sm:0 1px 3px #00000014
+--shadow-ambient-xl-hover:0px 8px 40px -4px #0000001f
+--shadow-ambient-xl:0px 0px 40px 0px #0000000f
+--shadow-button-filled:inset 0 0 12px #fff,0px 0px 2px 0 #0000001a
+--shadow-button-outline:inset 0 0 12px #00000017,0px 0px 1px #0003
+--shadow-card-hover:0px 8px 40px -4px #0000001f
+--shadow-card:0px 0px 40px 0px #0000000f
+--shadow-elevation-lg:0 12px 40px -8px #0000001f
+--shadow-elevation-md:0 4px 24px #0000001f
+--shadow-elevation-sm:0 1px 3px #00000014
+--shadow-focus-indigo:0 0 0 3px #a5bbfc26
+--shadow-focus-red:0 0 0 3px #f8717126
+--shadow-glow-indigo:inset 0 0 10px #c7d2fecc
+--shadow-inset-border:inset 0 -1px 0px #0000000d
+--shadow-inset-glow-dark:inset 0 0 12px #00000017
+--shadow-inset-glow-indigo:inset 0 0 10px #c7d2fecc
+--shadow-inset-glow-white:inset 0 0 12px #fff
+--shadow-inset-subtle:inset 0 -1px 0px #0000000d
+--shadow-ring-indigo:0 0 0 3px #a5bbfc26
+--shadow-ring-red:0 0 0 3px #f8717126
+--shadow-stroke-md:0px 0px 2px 0 #0000001a
+--shadow-stroke-sm:0px 0px 1px #0003
+--text-body-lg:18px
+--text-body:16px
+--text-caption:14px
+--text-heading-card:20px
+--text-heading-hero:56px
+--text-heading-metric:48px
+--text-heading-section:40px
+--text-label:12px
+--tracking-normal:0em
+--tracking-tight:-.025em
+--tracking-tighter:-.05em
+--tracking-wide:.025em
+--tracking-wider:.05em
+--tracking-widest:.1em
+class="group relative inline-flex items-center justify-center cursor-pointer font-matter rounded-full whitespace-nowrap touch-manipulation disabled:opacity-40 disabled:pointer-events-none active:scale-[0.96] active:duration-150 overflow-hidden bg-sf-secondary text-tx hover:bg-white shadow-[inset_0_2px_0_rgba(200,200,200,0.1),inset_0_-1px_0_rgba(0,0,0,0.05)] transition-[background-color,box-shadow] duration-350 ease-[cubic-bezier(0.2,0,0,1)] font-medium min-h-[40px] px-5 py-2 text-[15px] text-nowrap"
+class="group relative inline-flex items-center justify-center cursor-pointer font-matter rounded-full whitespace-nowrap touch-manipulation disabled:opacity-40 disabled:pointer-events-none active:scale-[0.96] active:duration-150 overflow-hidden bg-sf-secondary text-tx hover:bg-white shadow-[inset_0_2px_0_rgba(200,200,200,0.1),inset_0_-1px_0_rgba(0,0,0,0.05)] transition-[background-color,box-shadow] duration-350 ease-[cubic-bezier(0.2,0,0,1)] font-medium min-h-[40px] px-5 py-2 text-[15px] transition-opacity duration-150 opacity-0"
+class="group relative inline-flex items-center justify-center cursor-pointer font-matter rounded-full whitespace-nowrap touch-manipulation disabled:opacity-40 disabled:pointer-events-none active:scale-[0.96] active:duration-150 overflow-hidden bg-sf-secondary text-tx hover:bg-white shadow-[inset_0_2px_0_rgba(200,200,200,0.1),inset_0_-1px_0_rgba(0,0,0,0.05)] transition-[background-color,box-shadow] duration-350 ease-[cubic-bezier(0.2,0,0,1)] font-medium min-h-[40px] px-5 py-2.5 text-base w-full md:w-auto"
+class="group relative inline-flex items-center justify-center cursor-pointer font-matter rounded-full whitespace-nowrap touch-manipulation disabled:opacity-40 disabled:pointer-events-none active:scale-[0.96] active:duration-150 overflow-hidden bg-sf-secondary text-tx hover:bg-white shadow-[inset_0_2px_0_rgba(200,200,200,0.1),inset_0_-1px_0_rgba(0,0,0,0.05)] transition-[background-color,box-shadow] duration-350 ease-[cubic-bezier(0.2,0,0,1)] font-medium min-h-[40px] px-5 py-2.5 text-base"

@@ -1,0 +1,1976 @@
+openapi: 3.1.0
+info:
+  title: Tola API
+  version: 0.1.0
+  summary: Two signatures on every gram. Dual-signed, hash-chained gold job-work ledger.
+  description: |
+    One contract for both builds.
+    - `implementation/demo` implements every operation **without** `x-tola-track: scalable-only`.
+    - `implementation/scalable` implements everything **except** `x-tola-track: demo-only`.
+
+    Conventions (see docs/03-engineering/API_SPEC.md):
+    - weights are integer milligrams (`*_mg`), purity is fineness in parts per thousand (`fineness_ppt`),
+      percentages are basis points (`*_bps`), money is integer paise (`*_paise`);
+    - hashes are lowercase hex (64 chars); Ed25519 public keys and signatures are base64url without padding;
+    - errors are RFC 9457 `application/problem+json`;
+    - mutating requests accept `Idempotency-Key`.
+    API IDs (API-01..API-23) are given in `x-tola-api-id`. API-23 (wastage-norm versioning) was added by the engineering docs and is not yet in the brief.
+  contact:
+    name: Tola team
+  license:
+    name: Apache-2.0
+    identifier: Apache-2.0
+servers:
+  - url: http://localhost:8000
+    description: Local (both tracks), api port 8000
+  - url: https://tola-api-demo.onrender.com
+    description: Demo API on Render (placeholder hostname)
+  - url: https://api.tola.app
+    description: Scalable v1, GCP asia-south1 (placeholder hostname)
+tags:
+  - name: system
+  - name: demo
+  - name: shops
+  - name: orders
+  - name: scale
+  - name: ledger
+  - name: voice
+  - name: reconciliation
+  - name: disputes
+  - name: settlements
+  - name: passport
+  - name: norms
+  - name: auth
+  - name: sync
+  - name: webhooks
+  - name: me
+  - name: telemetry
+security:
+  - personaHeader: []
+  - bearerAuth: []
+
+paths:
+  /v1/health:
+    get:
+      tags: [system]
+      operationId: getHealth
+      summary: Liveness
+      x-tola-api-id: API-01
+      x-tola-track: both
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Health' }
+
+  /v1/demo/personas:
+    get:
+      tags: [demo]
+      operationId: listDemoPersonas
+      summary: Role-switcher personas with their public demo keys
+      x-tola-api-id: API-02
+      x-tola-track: demo-only
+      security: []
+      responses:
+        '200':
+          description: Personas
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [personas, story]
+                properties:
+                  personas:
+                    type: array
+                    items: { $ref: '#/components/schemas/DemoPersona' }
+                  story:
+                    $ref: '#/components/schemas/StoryState'
+  /v1/demo/reset:
+    post:
+      tags: [demo]
+      operationId: resetDemo
+      summary: Rebuild the SQLite DB from the seeded story week
+      x-tola-api-id: API-02
+      x-tola-track: demo-only
+      security: []
+      parameters:
+        - name: X-Demo-Reset-Token
+          in: header
+          required: true
+          schema: { type: string }
+          description: Must equal env DEMO_RESET_TOKEN (stops a judge's tap or a bot from wiping the stage DB)
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scenario: { type: string, enum: [story_week, empty], default: story_week }
+                step: { type: integer, minimum: 0, description: Fast-forward the story to this step }
+      responses:
+        '200':
+          description: Reset done
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StoryState' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/demo/state:
+    get:
+      tags: [demo]
+      operationId: getDemoState
+      summary: One read-only snapshot of the story week for the stage (orders, Rafiq's events, chain, run, dispute, settlement, payment, passport)
+      x-tola-api-id: API-02a
+      x-tola-track: demo-only
+      security: []
+      responses:
+        '200':
+          description: Snapshot. `done` lists the story steps already performed; `last_done` is `S00` before the week starts.
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+
+  /v1/demo/steps/{stepId}/perform:
+    post:
+      tags: [demo]
+      operationId: performDemoStep
+      summary: Perform one scripted story step with the seed's exact payload, through the same idempotent functions reset uses
+      x-tola-api-id: API-02b
+      x-tola-track: demo-only
+      security: []
+      parameters:
+        - name: stepId
+          in: path
+          required: true
+          schema: { type: string, pattern: '^S(0[1-9]|1[0-3])$' }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                party:
+                  type: string
+                  enum: [jeweller, karigar]
+                  description: S08 only. One side approves; the SETTLEMENT event seals when both have. Omit to draft the statement.
+      responses:
+        '200':
+          description: The new snapshot (same shape as GET /v1/demo/state)
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '404': { description: Unknown step }
+
+  /v1/shops/{shopId}/karigars:
+    parameters:
+      - $ref: '#/components/parameters/ShopId'
+    get:
+      tags: [shops]
+      operationId: listKarigars
+      summary: List karigars linked to a shop with fine-gold balances
+      x-tola-api-id: API-03
+      x-tola-track: both
+      responses:
+        '200':
+          description: Karigars
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/KarigarSummary' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [shops]
+      operationId: addKarigar
+      summary: Invite / link a karigar to the shop (creates Person, KarigarProfile and pair)
+      x-tola-api-id: API-03
+      x-tola-track: both
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AddKarigarRequest' }
+      responses:
+        '201':
+          description: Linked
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/KarigarSummary' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+
+  /v1/orders:
+    get:
+      tags: [orders]
+      operationId: listOrders
+      summary: List orders (filter by shop, karigar, status, due window)
+      x-tola-api-id: API-04
+      x-tola-track: both
+      parameters:
+        - { name: shopId, in: query, schema: { type: string, format: uuid } }
+        - { name: karigarId, in: query, schema: { type: string, format: uuid } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/OrderStatus' } }
+        - { name: dueBefore, in: query, schema: { type: string, format: date } }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Page of orders
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Order' }
+                  next_cursor: { type: [string, 'null'] }
+    post:
+      tags: [orders]
+      operationId: createOrder
+      summary: Create an order
+      x-tola-api-id: API-04
+      x-tola-track: both
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateOrderRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+  /v1/orders/{id}:
+    get:
+      tags: [orders]
+      operationId: getOrder
+      summary: Order with its events and running balance
+      x-tola-api-id: API-04
+      x-tola-track: both
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Order detail
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrderDetail' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/scale/readings:
+    post:
+      tags: [scale]
+      operationId: createScaleReading
+      summary: Ingest a scale reading (serial / BLE / display OCR / simulated / manual_dual)
+      x-tola-api-id: API-05
+      x-tola-track: both
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateScaleReadingRequest' }
+      responses:
+        '201':
+          description: Stored
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ScaleReading' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+
+  /v1/events:
+    post:
+      tags: [ledger]
+      operationId: createEvent
+      summary: Create a ledger event; returns the canonical body and the message each party must sign
+      description: |
+        Types accepted here: ISSUE, RETURN, SCRAP_RETURN, DUST_CREDIT, ADJUSTMENT.
+        DISPUTE_* events are created by API-12 and SETTLEMENT by API-13.
+        The server recomputes `fine_mg` with ledger-core and rejects mismatches (422 `FINE_MG_MISMATCH`).
+        Weights for ISSUE/RETURN/SCRAP_RETURN must come from `reading_ids` (422 `WEIGHT_NOT_FROM_SCALE`).
+      x-tola-api-id: API-06
+      x-tola-track: both
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateEventRequest' }
+      responses:
+        '201':
+          description: Event appended to the pair chain, pending signatures
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LedgerEvent' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+
+  /v1/events/{id}/signatures:
+    post:
+      tags: [ledger]
+      operationId: addEventSignature
+      summary: Add a party signature (approve or reject) to an event
+      x-tola-api-id: API-07
+      x-tola-track: both
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SignatureInput' }
+      responses:
+        '201':
+          description: Signature accepted; event status updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LedgerEvent' }
+        '400':
+          description: Signature does not verify (`BAD_SIGNATURE`) or key unknown (`UNKNOWN_KEY`)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /v1/ledger:
+    get:
+      tags: [ledger]
+      operationId: getLedger
+      summary: Event stream for a pair (or all pairs of a karigar/shop) with verified chain status and balances
+      x-tola-api-id: API-08
+      x-tola-track: both
+      parameters:
+        - { name: karigarId, in: query, schema: { type: string, format: uuid } }
+        - { name: shopId, in: query, schema: { type: string, format: uuid } }
+        - { name: sinceSeq, in: query, schema: { type: integer, minimum: 0 } }
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Ledger
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LedgerResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /v1/voice/readback:
+    post:
+      tags: [voice]
+      operationId: voiceReadback
+      summary: TTS read-back of an event, settlement or flag in a language (M-02)
+      x-tola-api-id: API-09
+      x-tola-track: both
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReadbackRequest' }
+      responses:
+        '200':
+          description: Audio and the exact text spoken
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReadbackResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/voice/intake:
+    post:
+      tags: [voice]
+      operationId: voiceIntake
+      summary: Voice note -> transcript (M-01) -> structured event drafts (M-03); weights come only from readings
+      description: |
+        Real-time path for clips of at most 30 s (Sarvam REST limit). Demo: longer audio is rejected with 413 `AUDIO_TOO_LONG`.
+        Scalable: longer audio is sent to the Sarvam batch API and the call returns 202 with `voice_note.id`; drafts arrive by polling API-08 / push.
+        M-01 model: `saaras:v3` (demo), `saaras:v4` (scalable).
+      x-tola-api-id: API-10
+      x-tola-track: both
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema: { $ref: '#/components/schemas/IntakeRequest' }
+            encoding:
+              audio: { contentType: 'audio/wav, audio/mpeg, audio/webm, audio/flac' }
+      responses:
+        '200':
+          description: Drafts for human confirmation (nothing is appended yet)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IntakeResponse' }
+        '202':
+          description: Scalable only, audio > 30 s queued for batch transcription
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IntakeResponse' }
+        '413': { $ref: '#/components/responses/TooLarge' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+
+  /v1/reconciliation/runs:
+    post:
+      tags: [reconciliation]
+      operationId: createReconciliationRun
+      summary: Run the weekly reconciliation (demo inline; v1 enqueued, 202)
+      x-tola-api-id: API-11
+      x-tola-track: both
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateRunRequest' }
+      responses:
+        '201':
+          description: Completed run (demo, synchronous)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReconciliationRun' }
+        '202':
+          description: Accepted (scalable, asynchronous); poll GET
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReconciliationRun' }
+        '409':
+          description: A pair chain failed verification (`CHAIN_BROKEN`)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /v1/reconciliation/runs/{id}:
+    get:
+      tags: [reconciliation]
+      operationId: getReconciliationRun
+      summary: Run with flags
+      x-tola-api-id: API-11
+      x-tola-track: both
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Run
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReconciliationRun' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/disputes:
+    post:
+      tags: [disputes]
+      operationId: openDispute
+      summary: Open a dispute on events or a flag (appends DISPUTE_OPEN)
+      description: Allowed up to 14 days after the referenced event was committed (or the flag was raised); otherwise 422 `DISPUTE_WINDOW_CLOSED`.
+      x-tola-api-id: API-12
+      x-tola-track: both
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OpenDisputeRequest' }
+      responses:
+        '201':
+          description: Dispute opened
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Dispute' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+  /v1/disputes/{id}/messages:
+    post:
+      tags: [disputes]
+      operationId: addDisputeMessage
+      summary: Add a text or voice message to the thread
+      x-tola-api-id: API-12
+      x-tola-track: both
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DisputeMessageInput' }
+      responses:
+        '201':
+          description: Message added
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DisputeMessage' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/disputes/{id}/resolve:
+    post:
+      tags: [disputes]
+      operationId: proposeDisputeResolution
+      summary: Propose a resolution; appends DISPUTE_RESOLVE (+ optional ADJUSTMENT) events pending both signatures (API-07)
+      x-tola-api-id: API-12
+      x-tola-track: both
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ResolveDisputeRequest' }
+      responses:
+        '201':
+          description: Resolution proposed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Dispute' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /v1/settlements:
+    post:
+      tags: [settlements]
+      operationId: draftSettlement
+      summary: Draft a period settlement for a pair (numbers by ledger-core, narrative by SettleAgent)
+      x-tola-api-id: API-13
+      x-tola-track: both
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DraftSettlementRequest' }
+      responses:
+        '201':
+          description: Draft
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Settlement' }
+        '409':
+          description: Overlapping period, open dispute (`OPEN_DISPUTE`) or pending events (`PENDING_EVENTS`)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /v1/settlements/{id}/approve:
+    post:
+      tags: [settlements]
+      operationId: approveSettlement
+      summary: One party signs the settlement body; on the second approval a SETTLEMENT event is appended
+      description: A key registered less than 72 h ago cannot sign a settlement (403 `DEVICE_COOLING_OFF`). Demo keys are seeded past the cooling-off.
+      x-tola-api-id: API-13
+      x-tola-track: both
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SignatureInput' }
+      responses:
+        '200':
+          description: Updated settlement
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Settlement' }
+        '400':
+          description: Bad signature
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '403':
+          description: Not a party, or `DEVICE_COOLING_OFF`
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/settlements/{id}/payment-intent:
+    post:
+      tags: [settlements]
+      operationId: createPaymentIntent
+      summary: UPI intent link + QR for an approved settlement (demo status `simulated`)
+      x-tola-api-id: API-14
+      x-tola-track: both
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '201':
+          description: Intent
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaymentIntent' }
+        '409':
+          description: Settlement not approved (`NOT_APPROVED`)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /v1/settlements/{id}/gst-draft:
+    get:
+      tags: [settlements]
+      operationId: getGstDraft
+      summary: Rule 55 delivery challan and 5% labour invoice PDF draft (watermarked DRAFT)
+      x-tola-api-id: API-16
+      x-tola-track: both
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - { name: kind, in: query, schema: { type: string, enum: [challan, labour_invoice, both], default: both } }
+      responses:
+        '200':
+          description: PDF
+          content:
+            application/pdf:
+              schema: { type: string, contentMediaType: application/pdf }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Shop has no GSTIN (`NO_GSTIN`)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /v1/passport/shares:
+    post:
+      tags: [passport]
+      operationId: createPassportShare
+      summary: Karigar creates a consented, time-boxed Work Passport link
+      x-tola-api-id: API-15
+      x-tola-track: both
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreatePassportShareRequest' }
+      responses:
+        '201':
+          description: Share created; token returned once
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PassportShareCreated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /v1/passport/{token}:
+    get:
+      tags: [passport]
+      operationId: viewPassport
+      summary: Lender views a passport by token (no auth; token is the capability)
+      x-tola-api-id: API-15
+      x-tola-track: both
+      security: []
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema: { type: string, pattern: '^[A-Za-z0-9_-]{22}$' }
+      responses:
+        '200':
+          description: Passport summary
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PassportView' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '410':
+          description: Expired, revoked or view limit reached
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /v1/passport/shares/{id}:
+    delete:
+      tags: [passport]
+      operationId: revokePassportShare
+      summary: Revoke a share
+      x-tola-api-id: API-15
+      x-tola-track: both
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204': { description: Revoked }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/auth/otp/request:
+    post:
+      tags: [auth]
+      operationId: requestOtp
+      summary: Send a 6-digit OTP by SMS
+      x-tola-api-id: API-17
+      x-tola-track: scalable-only
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone]
+              properties:
+                phone: { type: string, pattern: '^\+91[6-9][0-9]{9}$' }
+                lang: { $ref: '#/components/schemas/Lang' }
+      responses:
+        '202':
+          description: OTP sent
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [challenge_id, expires_in_s]
+                properties:
+                  challenge_id: { type: string, format: uuid }
+                  expires_in_s: { type: integer, example: 300 }
+        '429': { $ref: '#/components/responses/TooMany' }
+  /v1/auth/otp/verify:
+    post:
+      tags: [auth]
+      operationId: verifyOtp
+      summary: Verify OTP; returns tokens and registers the device public key
+      x-tola-api-id: API-17
+      x-tola-track: scalable-only
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [challenge_id, code, device_public_key]
+              properties:
+                challenge_id: { type: string, format: uuid }
+                code: { type: string, pattern: '^[0-9]{6}$' }
+                device_public_key: { $ref: '#/components/schemas/PublicKey' }
+                device_label: { type: string, maxLength: 60 }
+      responses:
+        '200':
+          description: Tokens
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthTokens' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooMany' }
+
+  /v1/sync:
+    post:
+      tags: [sync]
+      operationId: syncOutbox
+      summary: Offline batch sync of signed event drafts; returns server-assigned seq/hash and new server events
+      x-tola-api-id: API-18
+      x-tola-track: scalable-only
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SyncRequest' }
+      responses:
+        '200':
+          description: Per-item results
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SyncResponse' }
+        '413': { $ref: '#/components/responses/TooLarge' }
+
+  /v1/webhooks/whatsapp:
+    get:
+      tags: [webhooks]
+      operationId: verifyWhatsappWebhook
+      summary: Meta webhook verification handshake (hub.challenge)
+      x-tola-api-id: API-19
+      x-tola-track: scalable-only
+      security: []
+      parameters:
+        - { name: hub.mode, in: query, required: true, schema: { type: string } }
+        - { name: hub.verify_token, in: query, required: true, schema: { type: string } }
+        - { name: hub.challenge, in: query, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Echo challenge
+          content:
+            text/plain:
+              schema: { type: string }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [webhooks]
+      operationId: whatsappWebhook
+      summary: Inbound WhatsApp messages (button replies "Haan"/"Na", voice notes)
+      x-tola-api-id: API-19
+      x-tola-track: scalable-only
+      security: []
+      parameters:
+        - { name: X-Hub-Signature-256, in: header, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true, description: Meta WhatsApp Cloud API webhook payload }
+      responses:
+        '200': { description: Acknowledged (processing is async) }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /v1/webhooks/ivr:
+    post:
+      tags: [webhooks]
+      operationId: ivrWebhook
+      summary: Inbound IVR DTMF / speech result for a confirm or dispute call
+      x-tola-api-id: API-19
+      x-tola-track: scalable-only
+      security: []
+      parameters:
+        - { name: X-Tola-Webhook-Signature, in: header, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/IvrEvent' }
+          application/x-www-form-urlencoded:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Acknowledged }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /v1/webhooks/psp:
+    post:
+      tags: [webhooks]
+      operationId: pspWebhook
+      summary: UPI payment status from the PSP
+      x-tola-api-id: API-20
+      x-tola-track: scalable-only
+      security: []
+      parameters:
+        - { name: X-Tola-Webhook-Signature, in: header, required: false, schema: { type: string }, description: Provider-specific signature header is also accepted (e.g. X-Razorpay-Signature) }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true, description: Provider payload, normalised to PaymentIntent status }
+      responses:
+        '200': { description: Acknowledged }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/me:
+    get:
+      tags: [me]
+      operationId: getMe
+      summary: Current user, roles, keys and feature flags
+      x-tola-api-id: API-21
+      x-tola-track: scalable-only
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Me' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /v1/telemetry:
+    post:
+      tags: [telemetry]
+      operationId: postTelemetry
+      summary: PII-free client analytics and performance beacons (batched, sendBeacon-friendly)
+      x-tola-api-id: API-22
+      x-tola-track: scalable-only
+      security:
+        - bearerAuth: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TelemetryBatch' }
+          text/plain:
+            schema: { type: string, description: JSON TelemetryBatch sent via navigator.sendBeacon }
+      responses:
+        '202': { description: Accepted }
+        '413': { $ref: '#/components/responses/TooLarge' }
+        '429': { $ref: '#/components/responses/TooMany' }
+
+  /v1/pairs/{pairId}/norms:
+    post:
+      tags: [norms]
+      operationId: proposeWastageNorm
+      summary: Propose a new wastage-norm version for a pair (becomes active when both sign)
+      x-tola-api-id: API-23
+      x-tola-track: scalable-only
+      description: Added in engineering docs v0.1 as API-23 (not in brief section 7). The demo seeds already-signed norms.
+      parameters:
+        - { name: pairId, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_type, norm_bps, effective_from]
+              properties:
+                order_type: { $ref: '#/components/schemas/OrderType' }
+                norm_bps: { type: integer, minimum: 0, maximum: 5000 }
+                tolerance_mg: { type: integer, minimum: 0, default: 20 }
+                effective_from: { type: string, format: date }
+      responses:
+        '201':
+          description: Proposed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WastageNorm' }
+  /v1/norms/{id}/signatures:
+    post:
+      tags: [norms]
+      operationId: signWastageNorm
+      summary: Sign a proposed norm
+      x-tola-api-id: API-23
+      x-tola-track: scalable-only
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SignatureInput' }
+      responses:
+        '201':
+          description: Signed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WastageNorm' }
+
+components:
+  securitySchemes:
+    personaHeader:
+      type: apiKey
+      in: header
+      name: X-Tola-Persona
+      description: DEMO ONLY. Person id chosen in the role switcher. No authentication (ADR-0008).
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: SCALABLE ONLY. 15-minute access token from API-17.
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    ShopId:
+      name: shopId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema: { type: string, maxLength: 64 }
+      description: Same key + same route within 24 h returns the original response.
+    Cursor:
+      name: cursor
+      in: query
+      schema: { type: string }
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    Unauthorized:
+      description: Not authenticated / bad webhook signature
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    Forbidden:
+      description: Persona/role may not do this
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    NotFound:
+      description: Not found
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    Conflict:
+      description: State conflict (already signed, dispute closed, duplicate)
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    Unprocessable:
+      description: Validation or ledger-core rule failed
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    TooLarge:
+      description: Payload too large
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    TooMany:
+      description: Rate limited
+      headers:
+        Retry-After: { schema: { type: integer } }
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+
+  schemas:
+    # ---------- primitives ----------
+    Hex32:
+      type: string
+      pattern: '^[0-9a-f]{64}$'
+      description: 32 bytes, lowercase hex
+    PublicKey:
+      type: string
+      pattern: '^[A-Za-z0-9_-]{43,200}$'
+      description: base64url, no padding. Ed25519 = 32 bytes (43 chars); ES256 = P-256 key (65-byte SEC1 uncompressed)
+    Sig:
+      type: string
+      pattern: '^[A-Za-z0-9_-]{86,200}$'
+      description: base64url, no padding. Ed25519 = 64 bytes (86 chars); ES256 = DER ECDSA (about 70-72 bytes)
+    SigAlg:
+      type: string
+      enum: [ed25519, es256]
+    AssuranceTier:
+      type: string
+      enum: [device_key, channel_whatsapp_ivr, witnessed_in_person]
+    Milligrams:
+      type: integer
+      minimum: 0
+      maximum: 5000000
+      description: Integer milligrams (40.000 g = 40000)
+    SignedMilligrams:
+      type: integer
+      minimum: -5000000
+      maximum: 5000000
+    FinenessPpt:
+      type: integer
+      minimum: 1
+      maximum: 999
+      examples: [916]
+    Paise:
+      type: integer
+      minimum: 0
+    Lang:
+      type: string
+      enum: [en, hi, kn, bn, mr, ta]
+    LangBcp47:
+      type: string
+      enum: [en-IN, hi-IN, kn-IN, bn-IN, mr-IN, ta-IN]
+    OrderType:
+      type: string
+      enum: [plain, studded, antique]
+    OrderStatus:
+      type: string
+      enum: [open, in_work, returned, settled, cancelled]
+    EventType:
+      type: string
+      enum: [ISSUE, RETURN, SCRAP_RETURN, DUST_CREDIT, ADJUSTMENT, SETTLEMENT, DISPUTE_OPEN, DISPUTE_RESOLVE]
+    Role:
+      type: string
+      enum: [jeweller_owner, shop_staff, karigar, head_karigar, lender_officer]
+    SignerRole:
+      type: string
+      enum: [jeweller, karigar]
+
+    Problem:
+      type: object
+      required: [type, title, status, code]
+      properties:
+        type: { type: string, format: uri, examples: ['https://tola.app/errors/fine-mg-mismatch'] }
+        title: { type: string }
+        status: { type: integer }
+        code:
+          type: string
+          enum: [VALIDATION, NOT_FOUND, FORBIDDEN, UNAUTHENTICATED, CONFLICT, IDEMPOTENCY_REPLAY_MISMATCH,
+                 FINE_MG_MISMATCH, WEIGHT_NOT_FROM_SCALE, READING_NOT_STABLE, NORM_MISSING, BAD_SIGNATURE, UNKNOWN_KEY,
+                 ALREADY_SIGNED, CHAIN_BROKEN, OPEN_DISPUTE, PENDING_EVENTS, NOT_APPROVED, NO_GSTIN,
+                 SHARE_EXPIRED, SHARE_REVOKED, RATE_LIMITED, AI_UNAVAILABLE, PAYLOAD_TOO_LARGE,
+                 DISPUTE_WINDOW_CLOSED, DEVICE_COOLING_OFF, AUDIO_TOO_LONG, DEMO_RESET_TOKEN_INVALID, DELEGATION_INVALID, UNSUPPORTED_ALG]
+        detail: { type: string }
+        instance: { type: string }
+        request_id: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              message: { type: string }
+
+    Health:
+      type: object
+      required: [status, version, track]
+      properties:
+        status: { type: string, enum: [ok, degraded] }
+        version: { type: string, examples: ['0.1.0'] }
+        track: { type: string, enum: [demo, scalable] }
+        ai_fallback_mode: { type: string, enum: [live, cached, off] }
+        db: { type: string, enum: [ok, error] }
+        time: { type: string, format: date-time }
+
+    # ---------- demo ----------
+    DemoPersona:
+      type: object
+      required: [person_id, role, display_name, lang, public_key]
+      properties:
+        person_id: { type: string, format: uuid }
+        role: { $ref: '#/components/schemas/Role' }
+        display_name: { type: string, examples: ['Rafiq Sheikh'] }
+        persona_ref: { type: string, enum: [P-01, P-02, P-03, P-04, P-05] }
+        lang: { $ref: '#/components/schemas/Lang' }
+        shop_id: { type: [string, 'null'], format: uuid }
+        public_key: { $ref: '#/components/schemas/PublicKey' }
+        demo_private_seed:
+          type: string
+          description: DEMO ONLY, publicly known 32-byte seed (base64url) so the browser can sign as this persona. Never present in scalable.
+    StoryState:
+      type: object
+      required: [scenario, step, steps_total]
+      properties:
+        scenario: { type: string }
+        step: { type: integer }
+        steps_total: { type: integer, examples: [9] }
+        step_label: { type: string, examples: ['Wed: Rafiq returns the haar'] }
+
+    # ---------- E-01..E-03 ----------
+    Shop:
+      type: object
+      description: E-01
+      required: [id, name, city, default_lang]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string, maxLength: 120 }
+        gstin: { type: [string, 'null'], pattern: '^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$' }
+        bis_reg_no: { type: [string, 'null'] }
+        city: { type: string }
+        state_code: { type: string, pattern: '^[0-9]{2}$' }
+        default_lang: { $ref: '#/components/schemas/Lang' }
+    Person:
+      type: object
+      description: E-02 (phone is never returned to other parties)
+      required: [id, role, display_name, lang, public_keys]
+      properties:
+        id: { type: string, format: uuid }
+        role: { $ref: '#/components/schemas/Role' }
+        shop_id: { type: [string, 'null'], format: uuid }
+        display_name: { type: string }
+        lang: { $ref: '#/components/schemas/Lang' }
+        pseudonym: { type: string, examples: ['K-7f3a'] }
+        public_keys:
+          type: array
+          items:
+            type: object
+            required: [key_id, alg, public_key, active]
+            properties:
+              key_id: { type: string, format: uuid }
+              alg: { $ref: '#/components/schemas/SigAlg' }
+              public_key: { $ref: '#/components/schemas/PublicKey' }
+              label: { type: string, enum: [demo, device, passkey, custodial] }
+              registered_at: { type: string, format: date-time }
+              settlement_sign_after: { type: string, format: date-time, description: registered_at + 72 h }
+              active: { type: boolean }
+    KarigarProfile:
+      type: object
+      description: E-03
+      required: [person_id, languages]
+      properties:
+        person_id: { type: string, format: uuid }
+        languages: { type: array, minItems: 1, items: { $ref: '#/components/schemas/Lang' } }
+        pm_vishwakarma_id: { type: [string, 'null'] }
+        specialities: { type: array, items: { $ref: '#/components/schemas/OrderType' } }
+        workshop_label: { type: [string, 'null'] }
+    Pair:
+      type: object
+      description: E-03 child (shop_karigar_links); one hash chain per pair
+      required: [id, shop_id, karigar_id, status, head_seq, head_hash]
+      properties:
+        id: { type: string, format: uuid }
+        shop_id: { type: string, format: uuid }
+        karigar_id: { type: string, format: uuid }
+        status: { type: string, enum: [invited, active, ended] }
+        head_seq: { type: integer, minimum: 0 }
+        head_hash: { $ref: '#/components/schemas/Hex32' }
+        labour_rate_paise_per_g: { $ref: '#/components/schemas/Paise' }
+    Balance:
+      type: object
+      required: [held_fine_mg, open_orders, pending_events]
+      properties:
+        held_fine_mg: { type: integer, description: 'Fine gold the karigar holds for this shop (committed events only)' }
+        allowed_wastage_fine_mg: { type: integer }
+        open_orders: { type: integer }
+        pending_events: { type: integer }
+        open_flags: { type: integer }
+    KarigarSummary:
+      type: object
+      required: [person, profile, pair, balance]
+      properties:
+        person: { $ref: '#/components/schemas/Person' }
+        profile: { $ref: '#/components/schemas/KarigarProfile' }
+        pair: { $ref: '#/components/schemas/Pair' }
+        balance: { $ref: '#/components/schemas/Balance' }
+    AddKarigarRequest:
+      type: object
+      required: [display_name, languages, public_key]
+      properties:
+        display_name: { type: string, maxLength: 80 }
+        phone: { type: string, pattern: '^\+91[6-9][0-9]{9}$' }
+        languages: { type: array, minItems: 1, items: { $ref: '#/components/schemas/Lang' } }
+        pm_vishwakarma_id: { type: string }
+        public_key: { $ref: '#/components/schemas/PublicKey' }
+        labour_rate_paise_per_g: { $ref: '#/components/schemas/Paise' }
+        initial_norms:
+          type: array
+          description: Proposed norms (status proposed until both sign via API-23; demo seeds them signed)
+          items:
+            type: object
+            required: [order_type, norm_bps]
+            properties:
+              order_type: { $ref: '#/components/schemas/OrderType' }
+              norm_bps: { type: integer, minimum: 0, maximum: 5000 }
+
+    # ---------- E-04, E-05 ----------
+    Order:
+      type: object
+      description: E-04
+      required: [id, shop_id, code, title, order_type, target_fineness_ppt, due_date, status]
+      properties:
+        id: { type: string, format: uuid }
+        shop_id: { type: string, format: uuid }
+        pair_id: { type: [string, 'null'], format: uuid }
+        code: { type: string, pattern: '^ORD-[0-9]{4,}$' }
+        title: { type: string, maxLength: 120 }
+        order_type: { $ref: '#/components/schemas/OrderType' }
+        target_fineness_ppt: { $ref: '#/components/schemas/FinenessPpt' }
+        design_photo_url: { type: [string, 'null'], format: uri }
+        due_date: { type: string, format: date }
+        occasion_date: { type: [string, 'null'], format: date }
+        customer_ref: { type: [string, 'null'] }
+        labour_rate_paise_per_g: { type: [integer, 'null'], minimum: 0 }
+        labour_flat_paise: { $ref: '#/components/schemas/Paise' }
+        status: { $ref: '#/components/schemas/OrderStatus' }
+        late_risk: { type: string, enum: [none, at_risk, late] }
+        created_at: { type: string, format: date-time }
+    CreateOrderRequest:
+      type: object
+      required: [shop_id, title, order_type, target_fineness_ppt, due_date]
+      properties:
+        shop_id: { type: string, format: uuid }
+        pair_id: { type: string, format: uuid }
+        title: { type: string, maxLength: 120 }
+        order_type: { $ref: '#/components/schemas/OrderType' }
+        target_fineness_ppt: { $ref: '#/components/schemas/FinenessPpt' }
+        due_date: { type: string, format: date }
+        occasion_date: { type: string, format: date }
+        customer_ref: { type: string, maxLength: 40 }
+        labour_rate_paise_per_g: { $ref: '#/components/schemas/Paise' }
+        labour_flat_paise: { $ref: '#/components/schemas/Paise' }
+    OrderDetail:
+      allOf:
+        - $ref: '#/components/schemas/Order'
+        - type: object
+          required: [events, totals]
+          properties:
+            events: { type: array, items: { $ref: '#/components/schemas/LedgerEvent' } }
+            totals: { $ref: '#/components/schemas/OrderTotals' }
+    OrderTotals:
+      type: object
+      description: Gross-weight reconciliation (norm applies to gross issued). Canonical demo 40000 / 38620 / 1380 / 1000 / +380.
+      required: [issued_mg, returned_mg, loss_mg, allowed_mg, variance_mg, issued_fine_mg]
+      properties:
+        issued_mg: { type: integer, examples: [40000] }
+        returned_mg: { type: integer, examples: [38620] }
+        loss_mg: { type: integer, examples: [1380] }
+        allowed_mg: { type: integer, examples: [1000] }
+        issued_fine_mg: { type: integer, examples: [36640] }
+        variance_mg: { type: integer }
+    WastageNorm:
+      type: object
+      description: E-05
+      required: [id, pair_id, order_type, norm_bps, tolerance_mg, version, status, body_hash]
+      properties:
+        id: { type: string, format: uuid }
+        pair_id: { type: string, format: uuid }
+        order_type: { $ref: '#/components/schemas/OrderType' }
+        norm_bps: { type: integer, minimum: 0, maximum: 5000, examples: [250] }
+        tolerance_mg: { type: integer, minimum: 0 }
+        version: { type: integer, minimum: 1 }
+        effective_from: { type: string, format: date }
+        status: { type: string, enum: [proposed, active, superseded] }
+        body_hash: { $ref: '#/components/schemas/Hex32' }
+        signatures: { type: array, items: { $ref: '#/components/schemas/Signature' } }
+
+    # ---------- E-06, E-07 ----------
+    EventBody:
+      type: object
+      description: Canonical (RFC 8785) body that is hashed; parties sign "tola:v1:body:" || pair_id || 0x00 || SHA-256(JCS(body))
+      required: [v, event_id, pair_id, type, refs, created_by, created_at]
+      properties:
+        v: { type: integer, const: 1 }
+        event_id: { type: string, format: uuid }
+        pair_id: { type: string, format: uuid }
+        type: { $ref: '#/components/schemas/EventType' }
+        order_id: { type: [string, 'null'], format: uuid }
+        weight_mg: { type: [integer, 'null'], minimum: -5000000, maximum: 5000000 }
+        fineness_ppt: { type: [integer, 'null'], minimum: 1, maximum: 999 }
+        fine_mg: { type: [integer, 'null'] }
+        reading_ids: { type: array, items: { type: string, format: uuid } }
+        norm_id: { type: [string, 'null'] }
+        refs: { type: array, items: { type: string, format: uuid } }
+        note: { type: [string, 'null'], maxLength: 280 }
+        chain_head_seq: { type: [integer, 'null'], description: SETTLEMENT only }
+        chain_head_hash: { type: [string, 'null'], pattern: '^[0-9a-f]{64}$', description: SETTLEMENT only }
+        created_by: { type: string, format: uuid }
+        created_at: { type: string, format: date-time }
+    LedgerEvent:
+      type: object
+      description: E-06
+      required: [id, pair_id, seq, type, body, body_hash, prev_hash, hash, witness_sig, status, signatures, signing_message]
+      properties:
+        id: { type: string, format: uuid }
+        pair_id: { type: string, format: uuid }
+        seq: { type: integer, minimum: 1 }
+        type: { $ref: '#/components/schemas/EventType' }
+        body: { $ref: '#/components/schemas/EventBody' }
+        body_jcs: { type: string, description: Exact canonical JSON string that was hashed }
+        body_hash: { $ref: '#/components/schemas/Hex32' }
+        prev_hash: { $ref: '#/components/schemas/Hex32' }
+        hash: { $ref: '#/components/schemas/Hex32' }
+        witness_sig: { $ref: '#/components/schemas/Sig' }
+        server_received_at: { type: string, format: date-time }
+        status: { type: string, enum: [pending_signatures, committed, disputed] }
+        signing_message: { type: string, description: base64url of the exact bytes each party signs }
+        signatures: { type: array, items: { $ref: '#/components/schemas/Signature' } }
+        readings: { type: array, items: { $ref: '#/components/schemas/ScaleReading' } }
+        voice_note_id: { type: [string, 'null'], format: uuid }
+    CreateEventRequest:
+      type: object
+      required: [pair_id, type]
+      properties:
+        event_id: { type: string, format: uuid, description: Optional client UUIDv7 (idempotent) }
+        pair_id: { type: string, format: uuid }
+        type: { type: string, enum: [ISSUE, RETURN, SCRAP_RETURN, DUST_CREDIT, ADJUSTMENT] }
+        order_id: { type: string, format: uuid }
+        reading_ids: { type: array, items: { type: string, format: uuid }, maxItems: 10 }
+        weight_mg: { $ref: '#/components/schemas/SignedMilligrams' }
+        fineness_ppt: { $ref: '#/components/schemas/FinenessPpt' }
+        fine_mg: { type: integer, description: Optional; if sent it must equal ledger-core's value }
+        refs: { type: array, items: { type: string, format: uuid } }
+        note: { type: string, maxLength: 280 }
+        voice_note_id: { type: string, format: uuid }
+      example:
+        pair_id: 0192f6a8-0000-7000-8000-000000000001
+        type: ISSUE
+        order_id: 0192f6a8-0000-7000-8000-000000000014
+        reading_ids: [0192f6a8-0000-7000-8000-000000008812]
+        fineness_ppt: 916
+    Signature:
+      type: object
+      description: E-07
+      required: [id, subject_type, subject_id, role, signer_id, key_id, alg, public_key, sig, assurance_tier, decision, signed_at]
+      properties:
+        id: { type: string, format: uuid }
+        subject_type: { type: string, enum: [event, settlement, wastage_norm] }
+        subject_id: { type: string, format: uuid }
+        role: { $ref: '#/components/schemas/SignerRole' }
+        signer_id: { type: string, format: uuid }
+        on_behalf_of: { type: [string, 'null'], format: uuid, description: Helper the delegate signed for (E-16) }
+        delegation_id: { type: [string, 'null'], format: uuid }
+        key_id: { type: string, format: uuid }
+        alg: { $ref: '#/components/schemas/SigAlg' }
+        public_key: { $ref: '#/components/schemas/PublicKey' }
+        sig: { $ref: '#/components/schemas/Sig' }
+        authenticator_data: { type: [string, 'null'], description: WebAuthn only, base64url }
+        client_data_json: { type: [string, 'null'], description: WebAuthn only, base64url of the JSON }
+        readback_sha256: { type: [string, 'null'], pattern: '^[0-9a-f]{64}$', description: Hash of the read-back audio this signer heard; part of the signed message }
+        assurance_tier: { $ref: '#/components/schemas/AssuranceTier' }
+        device_fingerprint: { type: [string, 'null'] }
+        decision: { type: string, enum: [approve, reject] }
+        channel: { type: string, enum: [app, whatsapp, ivr, demo] }
+        signed_at: { type: string, format: date-time }
+        received_at: { type: string, format: date-time }
+    SignatureInput:
+      type: object
+      required: [role, signer_id, key_id, sig]
+      properties:
+        role: { $ref: '#/components/schemas/SignerRole' }
+        signer_id: { type: string, format: uuid }
+        on_behalf_of: { type: string, format: uuid }
+        delegation_id: { type: string, format: uuid }
+        key_id: { type: string, format: uuid }
+        alg: { allOf: [ { $ref: '#/components/schemas/SigAlg' } ], default: ed25519 }
+        public_key: { $ref: '#/components/schemas/PublicKey' }
+        sig: { $ref: '#/components/schemas/Sig' }
+        authenticator_data: { type: string, description: required when alg = es256 }
+        client_data_json: { type: string, description: required when alg = es256 }
+        readback_sha256: { type: string, pattern: '^[0-9a-f]{64}$' }
+        assurance_tier: { allOf: [ { $ref: '#/components/schemas/AssuranceTier' } ], default: device_key }
+        device_fingerprint: { type: string, maxLength: 64 }
+        decision: { type: string, enum: [approve, reject], default: approve }
+        signed_at: { type: string, format: date-time }
+        channel: { type: string, enum: [app, whatsapp, ivr, demo], default: app }
+    ChainStatus:
+      type: object
+      required: [pair_id, ok, length, head_hash, problems]
+      properties:
+        pair_id: { type: string, format: uuid }
+        ok: { type: boolean }
+        length: { type: integer }
+        head_hash: { $ref: '#/components/schemas/Hex32' }
+        verified_at: { type: string, format: date-time }
+        problems:
+          type: array
+          items:
+            type: object
+            required: [seq, code]
+            properties:
+              seq: { type: integer }
+              code: { type: string, enum: [GAP_OR_REORDER, BODY_TAMPERED, CHAIN_BROKEN, BAD_SIGNATURE, UNKNOWN_KEY, UNSUPPORTED_ALG, BAD_WITNESS, BAD_CHECKPOINT_SIG, CHECKPOINT_MISMATCH] }
+    LedgerResponse:
+      type: object
+      required: [pairs]
+      properties:
+        pairs:
+          type: array
+          items:
+            type: object
+            required: [pair, chain, balance, events]
+            properties:
+              pair: { $ref: '#/components/schemas/Pair' }
+              chain: { $ref: '#/components/schemas/ChainStatus' }
+              balance: { $ref: '#/components/schemas/Balance' }
+              events: { type: array, items: { $ref: '#/components/schemas/LedgerEvent' } }
+              checkpoints: { type: array, items: { $ref: '#/components/schemas/Checkpoint' } }
+              next_since_seq: { type: [integer, 'null'] }
+        server_public_key: { $ref: '#/components/schemas/PublicKey' }
+
+    # ---------- E-08 ----------
+    ScaleReading:
+      type: object
+      description: E-08
+      required: [id, shop_id, weight_mg, source, device_id, stable, captured_at]
+      properties:
+        id: { type: string, format: uuid }
+        shop_id: { type: string, format: uuid }
+        weight_mg: { $ref: '#/components/schemas/Milligrams' }
+        weight_display: { type: string, examples: ['40.000 g'] }
+        scale_device_id: { type: [string, 'null'], format: uuid, description: E-18 }
+        for_trade: { type: boolean, description: Copied from E-18; false for simulated and bench rig }
+        source: { type: string, enum: [serial, ble, display_ocr, simulated, manual_dual] }
+        device_id: { type: string }
+        device_label: { type: [string, 'null'] }
+        stable: { type: boolean }
+        raw_frame: { type: [string, 'null'] }
+        ocr_confidence: { type: [number, 'null'], minimum: 0, maximum: 1 }
+        photo_url: { type: [string, 'null'], format: uri }
+        captured_by: { type: string, format: uuid }
+        captured_at: { type: string, format: date-time }
+    CreateScaleReadingRequest:
+      type: object
+      required: [shop_id, weight_mg, source, device_id, stable]
+      properties:
+        shop_id: { type: string, format: uuid }
+        weight_mg: { $ref: '#/components/schemas/Milligrams' }
+        source: { type: string, enum: [serial, ble, display_ocr, simulated, manual_dual] }
+        scale_device_id: { type: string, format: uuid }
+        device_id: { type: string, maxLength: 120 }
+        device_label: { type: string, maxLength: 120 }
+        stable: { type: boolean }
+        raw_frame: { type: string, maxLength: 200 }
+        ocr_confidence: { type: number, minimum: 0, maximum: 1 }
+        photo_base64: { type: string, contentEncoding: base64, contentMediaType: image/jpeg, description: '<= 1 MB' }
+        second_entry_mg: { type: integer, description: Required when source=manual_dual; must equal weight_mg (typed by the other party) }
+        second_person_id: { type: string, format: uuid }
+      example: { shop_id: 0192f6a8-0000-7000-8000-0000000000a1, weight_mg: 40000, source: serial, device_id: 'serial:sim', stable: true, raw_frame: 'ST,GS,+  40.000 g' }
+
+    # ---------- E-09 voice ----------
+    ReadbackRequest:
+      type: object
+      required: [subject_type, subject_id, lang]
+      properties:
+        subject_type: { type: string, enum: [event, settlement, flag] }
+        subject_id: { type: string, format: uuid }
+        lang: { $ref: '#/components/schemas/LangBcp47' }
+        speaker: { type: string, examples: [ritu] }
+        pace: { type: number, minimum: 0.5, maximum: 2.0, default: 0.9 }
+    ReadbackResponse:
+      type: object
+      required: [text, lang, audio_url, source]
+      properties:
+        text: { type: string, description: Exact text spoken; numbers rendered from ledger-core values }
+        lang: { $ref: '#/components/schemas/LangBcp47' }
+        audio_url: { type: string, description: 'URL or data: URI of WAV audio' }
+        source: { type: string, enum: [live, cached, template] }
+        model: { type: string, examples: ['bulbul:v3'] }
+        duration_ms: { type: integer }
+    IntakeRequest:
+      type: object
+      required: [audio, lang, pair_id]
+      properties:
+        audio: { type: string, contentMediaType: audio/wav, description: 'real-time: <= 30 s and <= 2 MB' }
+        lang: { $ref: '#/components/schemas/LangBcp47' }
+        pair_id: { type: string, format: uuid }
+        reading_ids: { type: array, items: { type: string, format: uuid } }
+        demo_clip_id: { type: string, description: DEMO ONLY, use a seeded clip/transcript }
+    VoiceNote:
+      type: object
+      description: E-09
+      required: [id, person_id, lang, source, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        person_id: { type: string, format: uuid }
+        lang: { $ref: '#/components/schemas/LangBcp47' }
+        transcript: { type: [string, 'null'] }
+        extracted: { type: [object, 'null'] }
+        confidence: { type: [number, 'null'], minimum: 0, maximum: 1 }
+        model_ids: { type: object, additionalProperties: { type: string } }
+        source: { type: string, enum: [live, cached, template] }
+        created_at: { type: string, format: date-time }
+    EventDraft:
+      type: object
+      required: [type, order_id, reading_id, field_confidence]
+      properties:
+        type: { type: string, enum: [RETURN, SCRAP_RETURN, DUST_CREDIT] }
+        order_id: { type: [string, 'null'], format: uuid }
+        order_code: { type: [string, 'null'] }
+        reading_id: { type: [string, 'null'], format: uuid, description: Weight is taken only from this reading }
+        weight_mg: { type: [integer, 'null'], description: Copied from the reading by ledger-core, never from the LLM }
+        spoken_weight_mg: { type: [integer, 'null'], description: What the karigar said; shown only as a cross-check }
+        mismatch: { type: boolean, description: True if spoken and measured differ by > 10 mg }
+        field_confidence: { type: object, additionalProperties: { type: number } }
+    IntakeResponse:
+      type: object
+      required: [voice_note, drafts, needs_review]
+      properties:
+        voice_note: { $ref: '#/components/schemas/VoiceNote' }
+        drafts: { type: array, items: { $ref: '#/components/schemas/EventDraft' } }
+        needs_review: { type: boolean }
+        status: { type: string, enum: [done, queued_batch], default: done }
+        agent_trace_id: { type: [string, 'null'], description: Lyzr trace id }
+        ai_trace_ids: { type: array, items: { type: string, format: uuid }, description: E-19 rows }
+
+    # ---------- E-10 ----------
+    CreateRunRequest:
+      type: object
+      required: [shop_id, period_from, period_to]
+      properties:
+        shop_id: { type: string, format: uuid }
+        period_from: { type: string, format: date }
+        period_to: { type: string, format: date }
+        explain: { type: boolean, default: true, description: Ask ReconcileAgent for explanations }
+    VarianceFlag:
+      type: object
+      description: E-10 child
+      required: [id, run_id, pair_id, issued_mg, returned_mg, loss_mg, allowed_mg, variance_mg, variance_fine_mg, severity, code, status]
+      properties:
+        id: { type: string, format: uuid }
+        run_id: { type: string, format: uuid }
+        pair_id: { type: string, format: uuid }
+        order_id: { type: [string, 'null'], format: uuid }
+        issued_mg: { type: integer, examples: [40000] }
+        returned_mg: { type: integer, examples: [38620] }
+        loss_mg: { type: integer, examples: [1380] }
+        allowed_mg: { type: integer, examples: [1000] }
+        variance_mg: { type: integer, examples: [380] }
+        variance_fine_mg: { type: integer, examples: [348] }
+        variance_value_paise: { type: [integer, 'null'], examples: [518800] }
+        robust_z_x1000: { type: [integer, 'null'] }
+        severity: { type: string, enum: [info, warn, critical] }
+        code: { type: string, enum: [OVER_NORM, OPEN_BALANCE, DUPLICATE, UNSIGNED, UNUSUAL_FOR_KARIGAR] }
+        warnings: { type: array, items: { type: string, enum: [SIGNED_ON_ONE_DEVICE] } }
+        explanation:
+          type: object
+          properties:
+            source: { type: string, enum: [live, cached, template] }
+            text: { type: object, additionalProperties: { type: string }, description: 'keyed by Lang' }
+        status: { type: string, enum: [open, acknowledged, disputed, resolved] }
+    ReconciliationRun:
+      type: object
+      description: E-10
+      required: [id, shop_id, period_from, period_to, status]
+      properties:
+        id: { type: string, format: uuid }
+        shop_id: { type: string, format: uuid }
+        period_from: { type: string, format: date }
+        period_to: { type: string, format: date }
+        trigger: { type: string, enum: [manual, schedule] }
+        status: { type: string, enum: [running, done, failed, chain_broken] }
+        chains_verified: { type: integer }
+        pairs_count: { type: integer }
+        flags: { type: array, items: { $ref: '#/components/schemas/VarianceFlag' } }
+        ledger_core_version: { type: string }
+        started_at: { type: string, format: date-time }
+        finished_at: { type: [string, 'null'], format: date-time }
+
+    # ---------- E-11 ----------
+    OpenDisputeRequest:
+      type: object
+      required: [pair_id]
+      properties:
+        pair_id: { type: string, format: uuid }
+        flag_id: { type: string, format: uuid }
+        event_ids: { type: array, items: { type: string, format: uuid }, minItems: 1 }
+        message: { $ref: '#/components/schemas/DisputeMessageInput' }
+      anyOf:
+        - required: [flag_id]
+        - required: [event_ids]
+    DisputeMessageInput:
+      type: object
+      required: [kind]
+      properties:
+        kind: { type: string, enum: [text, voice] }
+        text: { type: string, maxLength: 1000 }
+        voice_note_id: { type: string, format: uuid }
+    DisputeMessage:
+      type: object
+      description: E-11 child (append-only)
+      required: [id, dispute_id, author_id, kind, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        dispute_id: { type: string, format: uuid }
+        author_id: { type: string, format: uuid }
+        kind: { type: string, enum: [text, voice] }
+        text: { type: [string, 'null'] }
+        voice_note_id: { type: [string, 'null'], format: uuid }
+        transcript: { type: [string, 'null'] }
+        created_at: { type: string, format: date-time }
+    ResolveDisputeRequest:
+      type: object
+      required: [kind, note]
+      properties:
+        kind: { type: string, enum: [NO_CHANGE, ADJUSTMENT, DUST_CREDIT] }
+        weight_mg: { $ref: '#/components/schemas/SignedMilligrams' }
+        fineness_ppt: { $ref: '#/components/schemas/FinenessPpt' }
+        note: { type: string, maxLength: 280 }
+    Dispute:
+      type: object
+      description: E-11
+      required: [id, pair_id, status, open_event_id, messages]
+      properties:
+        id: { type: string, format: uuid }
+        pair_id: { type: string, format: uuid }
+        flag_id: { type: [string, 'null'], format: uuid }
+        event_ids: { type: array, items: { type: string, format: uuid } }
+        opened_by: { type: string, format: uuid }
+        open_event_id: { type: string, format: uuid }
+        resolve_event_id: { type: [string, 'null'], format: uuid }
+        adjustment_event_id: { type: [string, 'null'], format: uuid }
+        status: { type: string, enum: [open, proposed_resolution, resolved, withdrawn] }
+        resolution: { type: [object, 'null'] }
+        messages: { type: array, items: { $ref: '#/components/schemas/DisputeMessage' } }
+        opened_at: { type: string, format: date-time }
+        resolved_at: { type: [string, 'null'], format: date-time }
+
+    # ---------- E-12, E-13 ----------
+    DraftSettlementRequest:
+      type: object
+      required: [pair_id, period_from, period_to]
+      properties:
+        pair_id: { type: string, format: uuid }
+        period_from: { type: string, format: date }
+        period_to: { type: string, format: date }
+        deductions_paise: { $ref: '#/components/schemas/Paise' }
+        deduction_note: { type: string, maxLength: 200 }
+    Settlement:
+      type: object
+      description: E-12
+      required: [id, code, pair_id, period_from, period_to, gold_issued_fine_mg, gold_returned_fine_mg, allowed_wastage_fine_mg,
+                 dust_credit_fine_mg, gold_balance_fine_mg, labour_paise, gst_labour_bps, gst_paise, deductions_paise,
+                 net_payable_paise, chain_head_seq, chain_head_hash, body_hash, signing_message, status, signatures]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string, pattern: '^STL-[0-9]{4,}$' }
+        pair_id: { type: string, format: uuid }
+        period_from: { type: string, format: date }
+        period_to: { type: string, format: date }
+        gold_issued_fine_mg: { type: integer }
+        gold_returned_fine_mg: { type: integer }
+        allowed_wastage_fine_mg: { type: integer }
+        dust_credit_fine_mg: { type: integer }
+        gold_balance_fine_mg: { type: integer }
+        labour_paise: { $ref: '#/components/schemas/Paise' }
+        gst_labour_bps: { type: integer, const: 500 }
+        gst_paise: { $ref: '#/components/schemas/Paise' }
+        deductions_paise: { $ref: '#/components/schemas/Paise' }
+        net_payable_paise: { type: integer }
+        chain_head_seq: { type: integer }
+        chain_head_hash: { $ref: '#/components/schemas/Hex32' }
+        body_hash: { $ref: '#/components/schemas/Hex32' }
+        signing_message: { type: string }
+        narrative:
+          type: object
+          properties:
+            source: { type: string, enum: [live, cached, template] }
+            text: { type: object, additionalProperties: { type: string } }
+        status: { type: string, enum: [draft, awaiting_karigar, awaiting_jeweller, approved, paid, paid_outside, void] }
+        signatures: { type: array, items: { $ref: '#/components/schemas/Signature' } }
+        settlement_event_id: { type: [string, 'null'], format: uuid }
+        created_at: { type: string, format: date-time }
+        approved_at: { type: [string, 'null'], format: date-time }
+    PaymentIntent:
+      type: object
+      description: E-13
+      required: [id, settlement_id, amount_paise, tr_ref, upi_uri, provider, status]
+      properties:
+        id: { type: string, format: uuid }
+        settlement_id: { type: string, format: uuid }
+        amount_paise: { $ref: '#/components/schemas/Paise' }
+        payee_vpa: { type: string }
+        payee_name: { type: string }
+        tr_ref: { type: string, examples: ['STL-0001-01'] }
+        upi_uri: { type: string, examples: ['upi://pay?pa=tola-demo@upi&pn=Tola%20Demo&am=5040.00&cu=INR&tn=STL-0001&tr=STL-0001-01'] }
+        qr_svg: { type: string, description: Inline SVG }
+        provider: { type: string, enum: [simulated, razorpay, cashfree, phonepe] }
+        provider_ref: { type: [string, 'null'] }
+        status: { type: string, enum: [simulated, created, pending, paid, failed, expired] }
+        simulated: { type: boolean, description: Always true in demo; UI must show the label }
+        created_at: { type: string, format: date-time }
+
+    # ---------- E-14 ----------
+    CreatePassportShareRequest:
+      type: object
+      required: [scope, recipient_label, purpose, consent]
+      properties:
+        scope: { type: string, enum: [summary, summary_with_monthly], default: summary }
+        recipient_label: { type: string, maxLength: 120 }
+        purpose: { type: string, enum: [working_capital_loan, gold_loan, scheme_application, other] }
+        expires_in_days: { type: integer, minimum: 1, maximum: 30, default: 7 }
+        max_views: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        consent:
+          type: object
+          required: [notice_version, lang, accepted]
+          properties:
+            notice_version: { type: string, examples: [notice-bn-v1] }
+            lang: { $ref: '#/components/schemas/Lang' }
+            accepted: { type: boolean, const: true }
+    PassportShare:
+      type: object
+      description: E-14
+      required: [id, karigar_id, scope, recipient_label, purpose, consented_at, expires_at]
+      properties:
+        id: { type: string, format: uuid }
+        karigar_id: { type: string, format: uuid }
+        scope: { type: string, enum: [summary, summary_with_monthly] }
+        recipient_label: { type: string }
+        purpose: { type: string }
+        consent_record_id: { type: string, format: uuid, description: E-15 }
+        consented_at: { type: string, format: date-time }
+        expires_at: { type: string, format: date-time }
+        revoked_at: { type: [string, 'null'], format: date-time }
+        max_views: { type: integer }
+        views: { type: integer }
+    PassportShareCreated:
+      allOf:
+        - $ref: '#/components/schemas/PassportShare'
+        - type: object
+          required: [token, url]
+          properties:
+            token: { type: string, pattern: '^[A-Za-z0-9_-]{22}$', description: Shown once; only its hash is stored }
+            url: { type: string, format: uri }
+            qr_svg: { type: string }
+    PassportView:
+      type: object
+      required: [karigar_display_name, period_from, period_to, grams_handled_fine_mg, orders_completed, on_time_bps, variance_vs_norm_bps, shops_count, chain_head_hashes, issued_at, server_sig, disclaimer]
+      properties:
+        karigar_display_name: { type: string }
+        languages: { type: array, items: { $ref: '#/components/schemas/Lang' } }
+        pm_vishwakarma_id_present: { type: boolean }
+        period_from: { type: string, format: date }
+        period_to: { type: string, format: date }
+        grams_handled_fine_mg: { type: integer }
+        orders_completed: { type: integer }
+        on_time_bps: { type: integer, description: 'On-time deliveries, basis points (9200 = 92%)' }
+        variance_vs_norm_bps: { type: integer, description: 'Average consumed/allowed - 1, basis points; negative = under norm' }
+        disputes_opened: { type: integer }
+        disputes_resolved: { type: integer }
+        shops_count: { type: integer }
+        monthly:
+          type: array
+          items:
+            type: object
+            properties:
+              month: { type: string, pattern: '^[0-9]{4}-[0-9]{2}$' }
+              fine_mg: { type: integer }
+              orders: { type: integer }
+        chain_head_hashes: { type: array, items: { $ref: '#/components/schemas/Hex32' } }
+        issued_at: { type: string, format: date-time }
+        expires_at: { type: string, format: date-time }
+        server_sig: { $ref: '#/components/schemas/Sig' }
+        disclaimer: { type: string, examples: ['Record shared by the karigar. Tola does not compute or sell a credit score.'] }
+        demo_label: { type: [string, 'null'], examples: ['Lender view is a mock for demonstration'] }
+
+    # ---------- scalable-only ----------
+    AuthTokens:
+      type: object
+      required: [access_token, refresh_token, expires_in_s, person]
+      properties:
+        access_token: { type: string }
+        refresh_token: { type: string }
+        expires_in_s: { type: integer, examples: [900] }
+        person: { $ref: '#/components/schemas/Person' }
+    SyncItem:
+      type: object
+      required: [kind, body, signatures]
+      properties:
+        kind: { type: string, enum: [event, scale_reading, voice_note_ref] }
+        body: { $ref: '#/components/schemas/EventBody' }
+        signatures: { type: array, items: { $ref: '#/components/schemas/SignatureInput' } }
+        reading: { $ref: '#/components/schemas/CreateScaleReadingRequest' }
+        audio_upload_id: { type: string }
+    SyncRequest:
+      type: object
+      required: [device_id, items]
+      properties:
+        device_id: { type: string }
+        items: { type: array, maxItems: 200, items: { $ref: '#/components/schemas/SyncItem' } }
+        last_known_heads:
+          type: object
+          additionalProperties: { type: integer }
+          description: pair_id -> last seq the device has
+    SyncResponse:
+      type: object
+      required: [results, server_events]
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            required: [event_id, status]
+            properties:
+              event_id: { type: string, format: uuid }
+              status: { type: string, enum: [appended, duplicate, rejected] }
+              seq: { type: [integer, 'null'] }
+              hash: { type: [string, 'null'] }
+              warnings: { type: array, items: { type: string, enum: [NORM_STALE, CLOCK_SKEW, DUPLICATE, SIGNED_ON_ONE_DEVICE] } }
+              error: { $ref: '#/components/schemas/Problem' }
+        server_events: { type: array, items: { $ref: '#/components/schemas/LedgerEvent' } }
+    IvrEvent:
+      type: object
+      required: [call_id, subject_id, input]
+      properties:
+        call_id: { type: string }
+        subject_id: { type: string, format: uuid }
+        caller_phone_hash: { type: string }
+        input: { type: string, enum: ['1', '2', haan, na, timeout] }
+        recording_url: { type: [string, 'null'], format: uri }
+
+    # ---------- E-15..E-19 (added 2026-10-20) ----------
+    ConsentRecord:
+      type: object
+      description: E-15 DPDP notice-and-consent artefact
+      required: [id, person_id, purpose, notice_version, lang, channel, given_at]
+      properties:
+        id: { type: string, format: uuid }
+        person_id: { type: string, format: uuid }
+        purpose: { type: string, enum: [ledger_participation, voice_processing, passport_share, whatsapp_channel] }
+        notice_version: { type: string, examples: [notice-bn-v1] }
+        lang: { $ref: '#/components/schemas/Lang' }
+        channel: { type: string, enum: [app, whatsapp, ivr, in_person, demo] }
+        evidence: { type: object, additionalProperties: true }
+        given_at: { type: string, format: date-time }
+        withdrawn_at: { type: [string, 'null'], format: date-time }
+    Delegation:
+      type: object
+      description: E-16 head-karigar delegation (scalable v1)
+      required: [id, principal_id, delegate_id, scope, valid_from, valid_to, body_hash, principal_sig]
+      properties:
+        id: { type: string, format: uuid }
+        principal_id: { type: string, format: uuid }
+        delegate_id: { type: string, format: uuid }
+        pair_id: { type: [string, 'null'], format: uuid }
+        scope: { type: string, enum: [events, events_and_settlements] }
+        max_weight_mg: { type: [integer, 'null'], minimum: 0 }
+        valid_from: { type: string, format: date-time }
+        valid_to: { type: string, format: date-time }
+        body_hash: { $ref: '#/components/schemas/Hex32' }
+        principal_sig: { $ref: '#/components/schemas/Sig' }
+        jeweller_ack_sig: { type: [string, 'null'] }
+        revoked_at: { type: [string, 'null'], format: date-time }
+    Checkpoint:
+      type: object
+      description: E-17 daily server-signed chain checkpoint
+      required: [id, pair_id, day, seq, head_hash, server_sig]
+      properties:
+        id: { type: string, format: uuid }
+        pair_id: { type: string, format: uuid }
+        day: { type: string, format: date }
+        seq: { type: integer, minimum: 0 }
+        head_hash: { $ref: '#/components/schemas/Hex32' }
+        server_sig: { $ref: '#/components/schemas/Sig' }
+        karigar_ack_sig: { type: [string, 'null'] }
+        created_at: { type: string, format: date-time }
+    ScaleDevice:
+      type: object
+      description: E-18 registered balance
+      required: [id, shop_id, label, interface, resolution_mg, for_trade, active]
+      properties:
+        id: { type: string, format: uuid }
+        shop_id: { type: string, format: uuid }
+        label: { type: string }
+        make_model: { type: [string, 'null'] }
+        serial_no: { type: [string, 'null'] }
+        interface: { type: string, enum: [serial, ble, display_ocr, simulated, bench_rig] }
+        accuracy_class: { type: [string, 'null'] }
+        resolution_mg: { type: integer, examples: [10] }
+        max_capacity_mg: { type: [integer, 'null'] }
+        verification_cert_ref: { type: [string, 'null'], description: Legal Metrology verification certificate reference }
+        verified_until: { type: [string, 'null'], format: date }
+        last_calibrated_on: { type: [string, 'null'], format: date }
+        for_trade: { type: boolean }
+        active: { type: boolean }
+    AiTrace:
+      type: object
+      description: E-19 AI lineage record (docs/04-ai/DATA_PIPELINE.md section 7)
+      required: [id, task, provider, model, input_hash, fallback_mode, validator_result, latency_ms, human_decision, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        task: { type: string, enum: ['M-01', 'M-02', 'M-03:intake', 'M-03:reconcile', 'M-03:settle', 'M-04', 'M-05'] }
+        provider: { type: string, enum: [sarvam, lyzr, local, cache, template] }
+        model: { type: string, examples: ['saaras:v3', 'bulbul:v3', 'gpt-4o-mini'] }
+        prompt_id: { type: [string, 'null'] }
+        prompt_version: { type: [string, 'null'] }
+        prompt_sha256: { type: [string, 'null'], pattern: '^[0-9a-f]{64}$' }
+        input_hash: { $ref: '#/components/schemas/Hex32' }
+        output_json: { type: [object, 'null'] }
+        output_sha256: { type: [string, 'null'], pattern: '^[0-9a-f]{64}$' }
+        fallback_mode: { type: string, enum: [live, cached, 'off'] }
+        validator_result: { type: string, enum: [pass, retry_pass, fallback_template, rejected_number] }
+        latency_ms: { type: integer }
+        cost_inr_milli: { type: [integer, 'null'], description: 'Estimated cost in thousandths of a rupee' }
+        human_decision: { type: string, enum: [accepted, edited, rejected, none] }
+        event_id: { type: [string, 'null'], format: uuid }
+        voice_note_id: { type: [string, 'null'], format: uuid }
+        run_id: { type: [string, 'null'], format: uuid }
+        settlement_id: { type: [string, 'null'], format: uuid }
+        created_at: { type: string, format: date-time }
+    Me:
+      type: object
+      description: API-21 response
+      required: [person, roles, feature_flags]
+      properties:
+        person: { $ref: '#/components/schemas/Person' }
+        roles: { type: array, items: { $ref: '#/components/schemas/Role' } }
+        shop_ids: { type: array, items: { type: string, format: uuid } }
+        pair_ids: { type: array, items: { type: string, format: uuid } }
+        consents: { type: array, items: { $ref: '#/components/schemas/ConsentRecord' } }
+        feature_flags:
+          type: object
+          additionalProperties: { type: boolean }
+          examples: [{ whatsapp_channel: true, passkeys: false, ble_scale: true }]
+    TelemetryEvent:
+      type: object
+      required: [name, ts]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          enum: [page_view, readback_played, readback_latency, sign_completed, sign_rejected, scale_connected, scale_unstable,
+                 sync_flushed, offline_queue_size, web_vital, error]
+        ts: { type: string, format: date-time }
+        route: { type: string, maxLength: 80, description: Route template only (e.g. /karigar/ledger), never ids }
+        value_ms: { type: integer, minimum: 0 }
+        value: { type: number }
+        lang: { $ref: '#/components/schemas/Lang' }
+        app_version: { type: string, maxLength: 20 }
+        device_class: { type: string, enum: [low, mid, high] }
+        net: { type: string, enum: [offline, slow-2g, 2g, 3g, 4g, wifi, unknown] }
+    TelemetryBatch:
+      type: object
+      description: API-22. No names, phones, ids, weights or free text; server drops unknown fields.
+      required: [session_hash, events]
+      properties:
+        session_hash: { type: string, pattern: '^[0-9a-f]{16,64}$', description: Random per-session id, rotated daily }
+        events: { type: array, maxItems: 100, items: { $ref: '#/components/schemas/TelemetryEvent' } }

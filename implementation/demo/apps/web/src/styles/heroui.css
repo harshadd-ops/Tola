@@ -1,0 +1,68 @@
+/*
+ * HeroUI v3 tuned to the Sarvam / Vakyam language (DESIGN.md §1, §13).
+ * We never fork HeroUI internals; we only set its BEM classes and variables here.
+ * Press feedback on pointer-down comes from HeroUI itself ([data-pressed] → scale 0.97).
+ */
+
+/* Pill buttons, Sarvam easing, 44 px targets on the large size */
+.button {
+  border-radius: 9999px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  touch-action: manipulation;
+}
+.button--lg {
+  height: 2.75rem;
+  padding-inline: 1.25rem;
+  font-size: 0.9375rem;
+}
+.button--outline {
+  border-color: var(--hairline-strong);
+}
+
+/* Cards: hairline first, no resting shadow (DESIGN §9 layer 1) */
+.card {
+  border: 1px solid var(--hairline-strong);
+  box-shadow: none;
+  border-radius: var(--r-lg, 24px);
+  padding: 1.25rem;
+}
+.card--transparent {
+  border: 0;
+}
+.card__title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+.card__description {
+  color: var(--ink-3);
+}
+
+/* Chips: calm weight. `.chip--sim` is the dashed "Simulated" chip (DESIGN §4.2). */
+.chip {
+  font-weight: 500;
+}
+.chip.chip--sim {
+  background: transparent;
+  border: 1px dashed var(--control-edge, #8a8a8a);
+  color: var(--ink-3);
+}
+
+/* Tables read like a ledger: hairline rows, tabular figures */
+.table__cell,
+.table__column {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Alerts used as AgentNote: indigo hairline, mist fill */
+.alert.agent-note {
+  background: var(--mist);
+  border: 1px solid var(--indigo-100, #e8effc);
+}
+.dark .alert.agent-note {
+  background: var(--bg-2);
+  border-color: var(--hairline-strong);
+}

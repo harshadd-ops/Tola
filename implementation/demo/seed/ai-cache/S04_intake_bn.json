@@ -1,0 +1,24 @@
+{
+  "step_id": "S04",
+  "lang": "bn",
+  "transcript": "চোদ্দো নম্বর অর্ডার জমা দিলাম। বালা আটত্রিশ দশমিক এক দুই শূন্য গ্রাম, স্ক্র্যাপ শূন্য দশমিক পাঁচ। ঝালাইয়ের জোড় ফেটে গেছিল, আবার করেছি।",
+  "en": "Handing in order number 14. Bangles 38.120 grams, scrap 0.5. The solder joint cracked, I redid it.",
+  "confidence": 0.94,
+  "extracted": {
+    "order": "#14",
+    "order_code": "#14",
+    "order_id": "order-14",
+    "piece_gross_mg": 38120,
+    "stone_mg": 0,
+    "net_gold_mg": 38120,
+    "scrap_mg": 500,
+    "dust_mg": 0,
+    "total_returned_mg": 38620,
+    "note_tag": "REWORK_SOLDER",
+    "narration_en": "Handing in order number 14. Bangles 38.120 grams, scrap 0.5. The solder joint cracked, I redid it.",
+    "scale_matches_voice": true
+  },
+  "model": "saaras:v3+intake-agent",
+  "source": "cached",
+  "cached": true
+}

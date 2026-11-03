@@ -1,0 +1,62 @@
+# Tola demo: one-command stack (web :3000 + api :8000) for a single VM or a stage laptop.
+#   cp .env.example .env        # fill keys, or leave AI_FALLBACK_MODE=cached for a fully offline run
+#   docker compose up --build
+#   open http://localhost:3000/stage
+# Stage laptop with no network: docker compose build while online, then `docker compose up` works offline
+# (fonts are self-hosted via Fontsource, AI replies come from seed/ai-cache and seed/audio).
+name: tola-demo
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    image: tola-demo-api:local
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-sqlite:////data/tola-demo.db}
+      AI_FALLBACK_MODE: ${AI_FALLBACK_MODE:-cached}
+      LYZR_API_KEY: ${LYZR_API_KEY:-}
+      LYZR_AGENT_ID_MANAGER: ${LYZR_AGENT_ID_MANAGER:-}
+      LYZR_AGENT_ID_INTAKE: ${LYZR_AGENT_ID_INTAKE:-}
+      LYZR_AGENT_ID_RECONCILE: ${LYZR_AGENT_ID_RECONCILE:-}
+      LYZR_AGENT_ID_SETTLE: ${LYZR_AGENT_ID_SETTLE:-}
+      SARVAM_API_KEY: ${SARVAM_API_KEY:-}
+      TOLA_SERVER_SIGNING_KEY: ${TOLA_SERVER_SIGNING_KEY:-}
+      TOLA_UPI_VPA: ${TOLA_UPI_VPA:-rafiq.demo@upi}
+      TOLA_UPI_PAYEE_NAME: ${TOLA_UPI_PAYEE_NAME:-Rafiq Sheikh (demo)}
+    ports:
+      - "8000:8000"
+    volumes:
+      - tola-data:/data
+      - ./seed:/app/seed:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys;sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/v1/health',timeout=2).status==200 else 1)"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 10s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: apps/web
+      dockerfile: Dockerfile
+      args:
+        # Baked into the client bundle at build time. Must be reachable from the audience-facing browser.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+        NEXT_PUBLIC_DEMO_MODE: ${NEXT_PUBLIC_DEMO_MODE:-1}
+        # The browser calls same-origin /v1; the web server proxies it here (inside the compose network).
+        API_INTERNAL_URL: http://api:8000
+    image: tola-demo-web:local
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  tola-data:

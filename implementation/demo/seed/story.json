@@ -1,0 +1,1353 @@
+{
+  "$schema_version": "tola-demo-story/1",
+  "_comment": "Scripted demo week for implementation/demo. All weights are integer milligrams (mg); fineness is parts per thousand; money is integer rupees (labour) or paise where noted. Loaded by services/api/tola_api/seed/loader.py on POST /v1/demo/reset. Names are illustrative composites, not real people. History orders (H- prefix) are synthetic. Canonical demo numbers come from docs/00-overview/PROJECT_BRIEF.md section 2 and docs/01-product/USER_JOURNEYS.md section 6; change those first.",
+  "story_id": "shetty-week-42",
+  "title": "One week at Shetty Jewellers",
+  "timezone": "Asia/Kolkata",
+  "week": {
+    "start": "2026-10-12T00:00:00+05:30",
+    "end": "2026-10-18T23:59:59+05:30",
+    "last_reconciliation_at": "2026-10-10T18:00:00+05:30"
+  },
+  "reference_prices": {
+    "_comment": "Display only (approx. rupee value of a variance). Never used in ledger arithmetic. Source [S47], 20 Oct 2026: Rs 1,49,041 per 10 g 24K.",
+    "gold_24k_inr_per_g": 14904,
+    "variance_inr_formula": "round(variance_mg * fineness / 1000 / 1000 * gold_24k_inr_per_g)"
+  },
+  "keys": {
+    "_comment": "DEMO ONLY, NOT SECURE. Each persona's Ed25519 seed = SHA-256(utf8('tola-demo:v1:' + person_id)). The browser derives the same seed with @noble/hashes and signs with @noble/ed25519; the server verifies with PyNaCl. Real builds never derive keys from public strings.",
+    "derivation": "sha256('tola-demo:v1:' + person_id)",
+    "server_key_env": "TOLA_SERVER_SIGNING_KEY"
+  },
+  "shop": {
+    "id": "shop-shetty",
+    "name": "Shetty Jewellers",
+    "address": "Avenue Road, Bengaluru 560002",
+    "gstin": "29ABCDE1234F1Z5",
+    "gstin_note": "Format-valid placeholder, not a real registration",
+    "bis_registration_no": null,
+    "languages": [
+      "kn",
+      "en"
+    ],
+    "upi_vpa_env": "TOLA_UPI_VPA"
+  },
+  "persons": [
+    {
+      "id": "p-suresh",
+      "persona": "P-01",
+      "name": "Suresh Shetty",
+      "role": "jeweller",
+      "title": "Owner",
+      "lang": "kn",
+      "ui_lang": "en",
+      "shop_id": "shop-shetty",
+      "avatar": "SS",
+      "chip_label": "Jeweller · Suresh"
+    },
+    {
+      "id": "p-lakshmi",
+      "persona": "P-03",
+      "name": "Lakshmi",
+      "role": "jeweller_staff",
+      "title": "Counter and accounts",
+      "lang": "kn",
+      "ui_lang": "kn",
+      "shop_id": "shop-shetty",
+      "avatar": "L",
+      "chip_label": "Counter · Lakshmi"
+    },
+    {
+      "id": "p-rafiq",
+      "persona": "P-02",
+      "name": "Rafiq Sheikh",
+      "role": "karigar",
+      "title": "Karigar (studded and plain work)",
+      "lang": "bn",
+      "ui_lang": "bn",
+      "avatar": "RS",
+      "chip_label": "Karigar · Rafiq"
+    },
+    {
+      "id": "p-manju",
+      "persona": "P-02",
+      "name": "Manjunath Achar",
+      "role": "karigar",
+      "title": "Karigar (chains, kada)",
+      "lang": "kn",
+      "ui_lang": "kn",
+      "avatar": "MA",
+      "chip_label": "Karigar · Manjunath"
+    },
+    {
+      "id": "p-subrata",
+      "persona": "P-05",
+      "name": "Subrata Pal",
+      "role": "karigar",
+      "title": "Head karigar, antique work (4 helpers)",
+      "lang": "bn",
+      "ui_lang": "bn",
+      "avatar": "SP",
+      "chip_label": "Karigar · Subrata"
+    },
+    {
+      "id": "p-meera",
+      "persona": "P-04",
+      "name": "Meera Rao",
+      "role": "lender",
+      "title": "Branch credit officer",
+      "org": "Sahyadri Co-operative Credit Society (fictional)",
+      "lang": "en",
+      "ui_lang": "en",
+      "avatar": "MR",
+      "chip_label": "Lender · Meera"
+    }
+  ],
+  "karigar_profiles": [
+    {
+      "person_id": "p-rafiq",
+      "languages": [
+        "bn",
+        "hi"
+      ],
+      "voice_lang": "bn",
+      "pm_vishwakarma_id": null,
+      "linked_shops": [
+        "shop-shetty"
+      ],
+      "other_jewellers_offline": 2,
+      "upi_vpa_demo": "rafiq.demo@upi",
+      "phone_display": "+91 98xxx xx214",
+      "gstin": "19ABCDE5678G1Z2",
+      "gstin_note": "Format-valid placeholder. Rafiq is GST-registered in the seed so the 5% labour-invoice line shows (HUNCH: many small karigars are below the threshold; then the GST line is omitted)."
+    },
+    {
+      "person_id": "p-manju",
+      "languages": [
+        "kn"
+      ],
+      "voice_lang": "kn",
+      "pm_vishwakarma_id": null,
+      "linked_shops": [
+        "shop-shetty"
+      ],
+      "other_jewellers_offline": 1,
+      "upi_vpa_demo": "manju.demo@upi",
+      "phone_display": "+91 97xxx xx508"
+    },
+    {
+      "person_id": "p-subrata",
+      "languages": [
+        "bn",
+        "hi"
+      ],
+      "voice_lang": "bn",
+      "pm_vishwakarma_id": null,
+      "linked_shops": [
+        "shop-shetty"
+      ],
+      "other_jewellers_offline": 3,
+      "upi_vpa_demo": "subrata.demo@upi",
+      "phone_display": "+91 99xxx xx331"
+    }
+  ],
+  "wastage_norms": {
+    "_comment": "Agreed allowance as basis points of GROSS issued gold (250 bp = 2.50%). Field norms 2-3% plain, 20-30% studded, ~4% antique [S17]. Each norm is a signed E-05 record per shop-karigar pair, version 1, agreed 2026-04-01.",
+    "version": 1,
+    "agreed_on": "2026-04-01",
+    "basis_points": {
+      "plain": 250,
+      "studded": 2500,
+      "antique": 400
+    },
+    "flag_tolerance_mg": 50,
+    "flag_rule": "flag when (loss_mg - allowed_mg) > flag_tolerance_mg, where loss_mg = issued_gold_mg - net_gold_mg - scrap_mg - dust_mg and allowed_mg = floor(issued_gold_mg * bp / 10000) + approved_adjustments_mg"
+  },
+  "history": {
+    "_comment": "Synthetic orders before the story week. The loader expands each into dual-signed ISSUE, RETURN, SCRAP_RETURN (if >0) and DUST_CREDIT (if >0) events, issued at 11:00 and returned at 17:00 IST on the given dates, chained per shop-karigar pair in date order.",
+    "orders": [
+      {
+        "code": "H-01",
+        "karigar_id": "p-rafiq",
+        "type": "plain",
+        "title": "Plain bangle",
+        "fineness": 916,
+        "issued_gold_mg": 12000,
+        "stone_mg": 0,
+        "issued_on": "2026-04-06",
+        "due_on": "2026-04-14",
+        "labour_inr": 1800,
+        "return": {
+          "returned_on": "2026-04-13",
+          "gross_mg": 11720,
+          "net_gold_mg": 11720,
+          "scrap_mg": 40,
+          "dust_mg": 30
+        },
+        "synthetic": true
+      },
+      {
+        "code": "H-02",
+        "karigar_id": "p-rafiq",
+        "type": "studded",
+        "title": "Stud earrings",
+        "fineness": 916,
+        "issued_gold_mg": 6000,
+        "stone_mg": 600,
+        "issued_on": "2026-04-20",
+        "due_on": "2026-04-30",
+        "labour_inr": 2100,
+        "return": {
+          "returned_on": "2026-04-29",
+          "gross_mg": 5200,
+          "net_gold_mg": 4600,
+          "scrap_mg": 120,
+          "dust_mg": 60
+        },
+        "synthetic": true
+      },
+      {
+        "code": "H-03",
+        "karigar_id": "p-rafiq",
+        "type": "plain",
+        "title": "Ring pair",
+        "fineness": 916,
+        "issued_gold_mg": 9500,
+        "stone_mg": 0,
+        "issued_on": "2026-05-04",
+        "due_on": "2026-05-12",
+        "labour_inr": 1500,
+        "return": {
+          "returned_on": "2026-05-11",
+          "gross_mg": 9280,
+          "net_gold_mg": 9280,
+          "scrap_mg": 20,
+          "dust_mg": 25
+        },
+        "synthetic": true
+      },
+      {
+        "code": "H-04",
+        "karigar_id": "p-rafiq",
+        "type": "antique",
+        "title": "Antique jhumka",
+        "fineness": 916,
+        "issued_gold_mg": 15000,
+        "stone_mg": 0,
+        "issued_on": "2026-05-18",
+        "due_on": "2026-05-30",
+        "labour_inr": 3600,
+        "return": {
+          "returned_on": "2026-05-29",
+          "gross_mg": 14420,
+          "net_gold_mg": 14420,
+          "scrap_mg": 80,
+          "dust_mg": 60
+        },
+        "synthetic": true
+      },
+      {
+        "code": "H-05",
+        "karigar_id": "p-rafiq",
+        "type": "plain",
+        "title": "Kada",
+        "fineness": 916,
+        "issued_gold_mg": 11000,
+        "stone_mg": 0,
+        "issued_on": "2026-06-01",
+        "due_on": "2026-06-09",
+        "labour_inr": 1650,
+        "return": {
+          "returned_on": "2026-06-08",
+          "gross_mg": 10760,
+          "net_gold_mg": 10760,
+          "scrap_mg": 30,
+          "dust_mg": 20
+        },
+        "synthetic": true
+      },
+      {
+        "code": "H-06",
+        "karigar_id": "p-rafiq",
+        "type": "studded",
+        "title": "CZ pendant",
+        "fineness": 916,
+        "issued_gold_mg": 8000,
+        "stone_mg": 900,
+        "issued_on": "2026-06-15",
+        "due_on": "2026-06-26",
+        "labour_inr": 2600,
+        "return": {
+          "returned_on": "2026-06-25",
+          "gross_mg": 7050,
+          "net_gold_mg": 6150,
+          "scrap_mg": 130,
+          "dust_mg": 80
+        },
+        "synthetic": true
+      },
+      {
+        "code": "H-07",
+        "karigar_id": "p-rafiq",
+        "type": "plain",
+        "title": "Chain",
+        "fineness": 916,
+        "issued_gold_mg": 14000,
+        "stone_mg": 0,
+        "issued_on": "2026-06-29",
+        "due_on": "2026-07-07",
+        "labour_inr": 2000,
+        "return": {
+          "returned_on": "2026-07-09",
+          "gross_mg": 13690,
+          "net_gold_mg": 13690,
+          "scrap_mg": 40,
+          "dust_mg": 30
+        },
+        "synthetic": true
+      },
+      {
+        "code": "H-08",
+        "karigar_id": "p-rafiq",
+        "type": "plain",
+        "title": "Nose pin set",
+        "fineness": 916,
+        "issued_gold_mg": 7000,
+        "stone_mg": 0,
+        "issued_on": "2026-07-13",
+        "due_on": "2026-07-20",
+        "labour_inr": 1200,
+        "return": {
+          "returned_on": "2026-07-20",
+          "gross_mg": 6840,
+          "net_gold_mg": 6840,
+          "scrap_mg": 10,
+          "dust_mg": 20
+        },
+        "synthetic": true
+      },
+      {
+        "code": "H-09",
+        "karigar_id": "p-rafiq",
+        "type": "antique",
+        "title": "Temple ring",
+        "fineness": 916,
+        "issued_gold_mg": 12000,
+        "stone_mg": 0,
+        "issued_on": "2026-07-27",
+        "due_on": "2026-08-07",
+        "labour_inr": 3000,
+        "return": {
+          "returned_on": "2026-08-06",
+          "gross_mg": 11560,
+          "net_gold_mg": 11560,
+          "scrap_mg": 50,
+          "dust_mg": 50
+        },
+        "synthetic": true
+      },
+      {
+        "code": "H-10",
+        "karigar_id": "p-rafiq",
+        "type": "plain",
+        "title": "Bracelet",
+        "fineness": 916,
+        "issued_gold_mg": 10000,
+        "stone_mg": 0,
+        "issued_on": "2026-08-10",
+        "due_on": "2026-08-18",
+        "labour_inr": 1500,
+        "return": {
+          "returned_on": "2026-08-17",
+          "gross_mg": 9770,
+          "net_gold_mg": 9770,
+          "scrap_mg": 20,
+          "dust_mg": 20
+        },
+        "synthetic": true
+      },
+      {
+        "code": "H-11",
+        "karigar_id": "p-rafiq",
+        "type": "studded",
+        "title": "Ruby studs",
+        "fineness": 916,
+        "issued_gold_mg": 9000,
+        "stone_mg": 1000,
+        "issued_on": "2026-08-24",
+        "due_on": "2026-09-04",
+        "labour_inr": 2900,
+        "return": {
+          "returned_on": "2026-09-03",
+          "gross_mg": 7900,
+          "net_gold_mg": 6900,
+          "scrap_mg": 150,
+          "dust_mg": 90
+        },
+        "synthetic": true
+      },
+      {
+        "code": "H-12",
+        "karigar_id": "p-rafiq",
+        "type": "plain",
+        "title": "Mangalsutra chain",
+        "fineness": 916,
+        "issued_gold_mg": 13000,
+        "stone_mg": 0,
+        "issued_on": "2026-09-07",
+        "due_on": "2026-09-15",
+        "labour_inr": 1900,
+        "return": {
+          "returned_on": "2026-09-14",
+          "gross_mg": 12710,
+          "net_gold_mg": 12710,
+          "scrap_mg": 40,
+          "dust_mg": 30
+        },
+        "synthetic": true
+      },
+      {
+        "code": "H-13",
+        "karigar_id": "p-rafiq",
+        "type": "plain",
+        "title": "Toe-ring set",
+        "fineness": 916,
+        "issued_gold_mg": 8500,
+        "stone_mg": 0,
+        "issued_on": "2026-09-21",
+        "due_on": "2026-09-29",
+        "labour_inr": 1350,
+        "return": {
+          "returned_on": "2026-09-28",
+          "gross_mg": 8300,
+          "net_gold_mg": 8300,
+          "scrap_mg": 15,
+          "dust_mg": 20
+        },
+        "synthetic": true
+      },
+      {
+        "code": "H-14",
+        "karigar_id": "p-rafiq",
+        "type": "antique",
+        "title": "Antique bangle",
+        "fineness": 916,
+        "issued_gold_mg": 11000,
+        "stone_mg": 0,
+        "issued_on": "2026-09-28",
+        "due_on": "2026-10-08",
+        "labour_inr": 2800,
+        "return": {
+          "returned_on": "2026-10-07",
+          "gross_mg": 10600,
+          "net_gold_mg": 10600,
+          "scrap_mg": 40,
+          "dust_mg": 40
+        },
+        "synthetic": true
+      },
+      {
+        "code": "H-21",
+        "karigar_id": "p-manju",
+        "type": "plain",
+        "title": "Rope chain",
+        "fineness": 916,
+        "issued_gold_mg": 20000,
+        "stone_mg": 0,
+        "issued_on": "2026-07-06",
+        "due_on": "2026-07-14",
+        "labour_inr": 2200,
+        "return": {
+          "returned_on": "2026-07-13",
+          "gross_mg": 19540,
+          "net_gold_mg": 19540,
+          "scrap_mg": 40,
+          "dust_mg": 30
+        },
+        "synthetic": true
+      },
+      {
+        "code": "H-22",
+        "karigar_id": "p-manju",
+        "type": "plain",
+        "title": "Kada",
+        "fineness": 916,
+        "issued_gold_mg": 16000,
+        "stone_mg": 0,
+        "issued_on": "2026-08-03",
+        "due_on": "2026-08-11",
+        "labour_inr": 1900,
+        "return": {
+          "returned_on": "2026-08-10",
+          "gross_mg": 15630,
+          "net_gold_mg": 15630,
+          "scrap_mg": 30,
+          "dust_mg": 20
+        },
+        "synthetic": true
+      },
+      {
+        "code": "H-23",
+        "karigar_id": "p-manju",
+        "type": "plain",
+        "title": "Box chain",
+        "fineness": 916,
+        "issued_gold_mg": 22000,
+        "stone_mg": 0,
+        "issued_on": "2026-09-07",
+        "due_on": "2026-09-15",
+        "labour_inr": 2400,
+        "return": {
+          "returned_on": "2026-09-16",
+          "gross_mg": 21490,
+          "net_gold_mg": 21490,
+          "scrap_mg": 50,
+          "dust_mg": 30
+        },
+        "synthetic": true
+      },
+      {
+        "code": "H-31",
+        "karigar_id": "p-subrata",
+        "type": "antique",
+        "title": "Kasu mala",
+        "fineness": 916,
+        "issued_gold_mg": 25000,
+        "stone_mg": 0,
+        "issued_on": "2026-07-13",
+        "due_on": "2026-07-25",
+        "labour_inr": 5600,
+        "return": {
+          "returned_on": "2026-07-24",
+          "gross_mg": 23980,
+          "net_gold_mg": 23980,
+          "scrap_mg": 90,
+          "dust_mg": 100
+        },
+        "synthetic": true
+      },
+      {
+        "code": "H-32",
+        "karigar_id": "p-subrata",
+        "type": "antique",
+        "title": "Temple choker",
+        "fineness": 916,
+        "issued_gold_mg": 28000,
+        "stone_mg": 0,
+        "issued_on": "2026-08-17",
+        "due_on": "2026-08-29",
+        "labour_inr": 6200,
+        "return": {
+          "returned_on": "2026-08-28",
+          "gross_mg": 26950,
+          "net_gold_mg": 26950,
+          "scrap_mg": 100,
+          "dust_mg": 110
+        },
+        "synthetic": true
+      }
+    ]
+  },
+  "orders": [
+    {
+      "code": "#09",
+      "karigar_id": "p-rafiq",
+      "type": "plain",
+      "title": "Gold chain, 18 in",
+      "fineness": 916,
+      "issued_gold_mg": 18000,
+      "stone_mg": 0,
+      "issued_on": "2026-10-05",
+      "due_on": "2026-10-24",
+      "labour_inr": 2600,
+      "return": null,
+      "occasion": null
+    },
+    {
+      "code": "#11",
+      "karigar_id": "p-rafiq",
+      "type": "plain",
+      "title": "Jhumka pair",
+      "fineness": 916,
+      "issued_gold_mg": 8000,
+      "stone_mg": 0,
+      "issued_on": "2026-10-09",
+      "due_on": "2026-10-13",
+      "labour_inr": 1450,
+      "return": {
+        "returned_on": "2026-10-10",
+        "gross_mg": 7780,
+        "net_gold_mg": 7780,
+        "scrap_mg": 0,
+        "dust_mg": 20
+      },
+      "occasion": null
+    },
+    {
+      "code": "#12",
+      "karigar_id": "p-manju",
+      "type": "plain",
+      "title": "Rope chain, 20 in",
+      "fineness": 916,
+      "issued_gold_mg": 25000,
+      "stone_mg": 0,
+      "issued_on": "2026-10-12",
+      "due_on": "2026-10-17",
+      "labour_inr": 2600,
+      "return": {
+        "returned_on": "2026-10-16",
+        "gross_mg": 24400,
+        "net_gold_mg": 24400,
+        "scrap_mg": 50,
+        "dust_mg": 30
+      },
+      "occasion": null
+    },
+    {
+      "code": "#13",
+      "karigar_id": "p-subrata",
+      "type": "antique",
+      "title": "Temple necklace, Lakshmi motif",
+      "fineness": 916,
+      "issued_gold_mg": 30000,
+      "stone_mg": 0,
+      "issued_on": "2026-10-13",
+      "due_on": "2026-10-17",
+      "labour_inr": 6800,
+      "return": {
+        "returned_on": "2026-10-17",
+        "gross_mg": 28650,
+        "net_gold_mg": 28650,
+        "scrap_mg": 100,
+        "dust_mg": 120
+      },
+      "occasion": null
+    },
+    {
+      "code": "#14",
+      "karigar_id": "p-rafiq",
+      "type": "plain",
+      "title": "Plain bangle pair, 22K",
+      "fineness": 916,
+      "issued_gold_mg": 40000,
+      "stone_mg": 0,
+      "issued_on": "2026-10-12",
+      "due_on": "2026-10-20",
+      "labour_inr": 4800,
+      "return": {
+        "returned_on": "2026-10-15",
+        "gross_mg": 38120,
+        "net_gold_mg": 38120,
+        "scrap_mg": 500,
+        "dust_mg": 0
+      },
+      "occasion": "Customer wedding 2026-11-02"
+    },
+    {
+      "code": "#15",
+      "karigar_id": "p-manju",
+      "type": "plain",
+      "title": "Kada pair",
+      "fineness": 916,
+      "issued_gold_mg": 18500,
+      "stone_mg": 0,
+      "issued_on": "2026-10-14",
+      "due_on": "2026-10-21",
+      "labour_inr": 2200,
+      "return": null,
+      "occasion": null
+    }
+  ],
+  "preseeded_events": {
+    "_comment": "Events that exist right after reset: Rafiq's earlier orders (#09 open, #11 returned and settled in week 41) and the other karigars' separate chains for the story week. occurred_at is business time; the loader sets recorded_at = occurred_at for seeded rows.",
+    "events": [
+      {
+        "ref": "R1",
+        "type": "ISSUE",
+        "order": "#09",
+        "karigar_id": "p-rafiq",
+        "occurred_at": "2026-10-05T11:20:00+05:30",
+        "gold_mg": 18000,
+        "fineness": 916,
+        "stone_mg": 0,
+        "scale": {
+          "source": "simulated",
+          "device_id": "sim-balance-01"
+        },
+        "signers": [
+          "p-suresh",
+          "p-rafiq"
+        ]
+      },
+      {
+        "ref": "R2",
+        "type": "ISSUE",
+        "order": "#11",
+        "karigar_id": "p-rafiq",
+        "occurred_at": "2026-10-09T16:05:00+05:30",
+        "gold_mg": 8000,
+        "fineness": 916,
+        "stone_mg": 0,
+        "scale": {
+          "source": "simulated",
+          "device_id": "sim-balance-01"
+        },
+        "signers": [
+          "p-lakshmi",
+          "p-rafiq"
+        ]
+      },
+      {
+        "ref": "R3",
+        "type": "RETURN",
+        "order": "#11",
+        "karigar_id": "p-rafiq",
+        "occurred_at": "2026-10-10T17:40:00+05:30",
+        "gross_mg": 7780,
+        "stone_mg": 0,
+        "net_gold_mg": 7780,
+        "fineness": 916,
+        "signers": [
+          "p-lakshmi",
+          "p-rafiq"
+        ],
+        "scale": {
+          "source": "simulated",
+          "device_id": "sim-balance-01"
+        }
+      },
+      {
+        "ref": "R4",
+        "type": "DUST_CREDIT",
+        "order": "#11",
+        "karigar_id": "p-rafiq",
+        "occurred_at": "2026-10-10T17:41:00+05:30",
+        "gold_mg": 20,
+        "fineness": 916,
+        "signers": [
+          "p-lakshmi",
+          "p-rafiq"
+        ]
+      },
+      {
+        "ref": "R4s",
+        "type": "SETTLEMENT",
+        "karigar_id": "p-rafiq",
+        "occurred_at": "2026-10-11T11:00:00+05:30",
+        "period": "2026-10-05/2026-10-11",
+        "orders": [
+          "#11"
+        ],
+        "labour_paise": 145000,
+        "gst_paise": 7250,
+        "payment": {
+          "status": "simulated"
+        },
+        "signers": [
+          "p-suresh",
+          "p-rafiq"
+        ]
+      },
+      {
+        "ref": "M1",
+        "type": "ISSUE",
+        "order": "#12",
+        "karigar_id": "p-manju",
+        "occurred_at": "2026-10-12T11:15:00+05:30",
+        "gold_mg": 25000,
+        "fineness": 916,
+        "stone_mg": 0,
+        "signers": [
+          "p-lakshmi",
+          "p-manju"
+        ],
+        "scale": {
+          "source": "simulated",
+          "device_id": "sim-balance-01"
+        }
+      },
+      {
+        "ref": "S1",
+        "type": "ISSUE",
+        "order": "#13",
+        "karigar_id": "p-subrata",
+        "occurred_at": "2026-10-13T10:45:00+05:30",
+        "gold_mg": 30000,
+        "fineness": 916,
+        "stone_mg": 0,
+        "signers": [
+          "p-suresh",
+          "p-subrata"
+        ],
+        "scale": {
+          "source": "simulated",
+          "device_id": "sim-balance-01"
+        }
+      },
+      {
+        "ref": "M2",
+        "type": "ISSUE",
+        "order": "#15",
+        "karigar_id": "p-manju",
+        "occurred_at": "2026-10-14T12:30:00+05:30",
+        "gold_mg": 18500,
+        "fineness": 916,
+        "stone_mg": 0,
+        "signers": [
+          "p-lakshmi",
+          "p-manju"
+        ],
+        "scale": {
+          "source": "simulated",
+          "device_id": "sim-balance-01"
+        }
+      },
+      {
+        "ref": "M3",
+        "type": "RETURN",
+        "order": "#12",
+        "karigar_id": "p-manju",
+        "occurred_at": "2026-10-16T15:00:00+05:30",
+        "gross_mg": 24400,
+        "stone_mg": 0,
+        "net_gold_mg": 24400,
+        "fineness": 916,
+        "signers": [
+          "p-lakshmi",
+          "p-manju"
+        ],
+        "scale": {
+          "source": "simulated",
+          "device_id": "sim-balance-01"
+        }
+      },
+      {
+        "ref": "M4",
+        "type": "SCRAP_RETURN",
+        "order": "#12",
+        "karigar_id": "p-manju",
+        "occurred_at": "2026-10-16T15:01:00+05:30",
+        "gold_mg": 50,
+        "fineness": 916,
+        "signers": [
+          "p-lakshmi",
+          "p-manju"
+        ]
+      },
+      {
+        "ref": "M5",
+        "type": "DUST_CREDIT",
+        "order": "#12",
+        "karigar_id": "p-manju",
+        "occurred_at": "2026-10-16T15:02:00+05:30",
+        "gold_mg": 30,
+        "fineness": 916,
+        "signers": [
+          "p-lakshmi",
+          "p-manju"
+        ]
+      },
+      {
+        "ref": "S2",
+        "type": "RETURN",
+        "order": "#13",
+        "karigar_id": "p-subrata",
+        "occurred_at": "2026-10-17T11:30:00+05:30",
+        "gross_mg": 28650,
+        "stone_mg": 0,
+        "net_gold_mg": 28650,
+        "fineness": 916,
+        "signers": [
+          "p-suresh",
+          "p-subrata"
+        ],
+        "scale": {
+          "source": "simulated",
+          "device_id": "sim-balance-01"
+        }
+      },
+      {
+        "ref": "S3",
+        "type": "SCRAP_RETURN",
+        "order": "#13",
+        "karigar_id": "p-subrata",
+        "occurred_at": "2026-10-17T11:31:00+05:30",
+        "gold_mg": 100,
+        "fineness": 916,
+        "signers": [
+          "p-suresh",
+          "p-subrata"
+        ]
+      },
+      {
+        "ref": "S4",
+        "type": "DUST_CREDIT",
+        "order": "#13",
+        "karigar_id": "p-subrata",
+        "occurred_at": "2026-10-17T11:32:00+05:30",
+        "gold_mg": 120,
+        "fineness": 916,
+        "signers": [
+          "p-suresh",
+          "p-subrata"
+        ]
+      }
+    ]
+  },
+  "steps": [
+    {
+      "id": "S01",
+      "day": "Mon",
+      "clock": "2026-10-12T10:02:00+05:30",
+      "persona": "p-suresh",
+      "route": "/stage",
+      "title": "Gold on the scale",
+      "action": "scale.capture",
+      "scale": {
+        "target_mg": 40000,
+        "settle_ms": 1400,
+        "jitter_mg": [
+          40130,
+          39960,
+          40020,
+          39990,
+          40000,
+          40000,
+          40000
+        ],
+        "stable_rule": "3 consecutive readings within 10 mg over >= 1.5 s (EC-2)",
+        "source": "simulated",
+        "alt_sources": [
+          "serial",
+          "manual_dual"
+        ]
+      },
+      "api": [
+        "POST /v1/scale/readings"
+      ]
+    },
+    {
+      "id": "S02",
+      "day": "Mon",
+      "clock": "2026-10-12T10:02:30+05:30",
+      "persona": "p-suresh",
+      "route": "/stage",
+      "title": "Issue 40.000 g to Rafiq, norm 2.50% agreed up front",
+      "action": "event.create",
+      "event": {
+        "ref": "R5",
+        "type": "ISSUE",
+        "order": "#14",
+        "karigar_id": "p-rafiq",
+        "gold_mg": 40000,
+        "fineness": 916,
+        "fine_mg": 36640,
+        "stone_mg": 0,
+        "norm_bp": 250,
+        "norm_basis": "gross_issued",
+        "allowed_mg": 1000,
+        "photo": "seed/photos/order14-bar.jpg"
+      },
+      "api": [
+        "POST /v1/events",
+        "POST /v1/events/{id}/signatures"
+      ],
+      "signs": [
+        "p-suresh"
+      ]
+    },
+    {
+      "id": "S03",
+      "day": "Mon",
+      "clock": "2026-10-12T10:03:00+05:30",
+      "persona": "p-rafiq",
+      "route": "/stage",
+      "title": "Rafiq hears it in Bengali and says haan",
+      "action": "voice.readback+sign",
+      "readback": {
+        "lang": "bn",
+        "text": "অর্ডার চোদ্দো। চল্লিশ দশমিক শূন্য শূন্য শূন্য গ্রাম সোনা, বাইশ ক্যারেট, জমা হলো। ঘাটতির সীমা দুই দশমিক পাঁচ শতাংশ, মানে এক গ্রাম।",
+        "translit": "Order choddo. Chollish doshomik shunyo shunyo shunyo gram sona, baish carat, jama holo. Ghatir sima dui doshomik panch shotangsho, mane ek gram.",
+        "en": "Order 14. 40.000 grams of gold, 22 carat, received. Wastage limit 2.5 percent, that is 1 gram.",
+        "cached_audio": "seed/audio/S03_readback_bn.mp3"
+      },
+      "api": [
+        "POST /v1/voice/readback",
+        "POST /v1/events/{id}/signatures"
+      ],
+      "signs": [
+        "p-rafiq"
+      ],
+      "result": "R5 sealed: 2 of 2 signatures"
+    },
+    {
+      "id": "S04",
+      "day": "Thu",
+      "clock": "2026-10-15T16:10:00+05:30",
+      "persona": "p-rafiq",
+      "route": "/stage",
+      "title": "Thursday return: piece and scrap on the scale, voice note to the intake agent",
+      "action": "voice.intake",
+      "voice_note": {
+        "lang": "bn",
+        "cached_audio": "seed/audio/S04_return_note_bn.webm",
+        "transcript": "চোদ্দো নম্বর অর্ডার জমা দিলাম। বালা আটত্রিশ দশমিক এক দুই শূন্য গ্রাম, স্ক্র্যাপ শূন্য দশমিক পাঁচ। ঝালাইয়ের জোড় ফেটে গেছিল, আবার করেছি।",
+        "en": "Handing in order number 14. Bangles 38.120 grams, scrap 0.5. The solder joint cracked, I redid it."
+      },
+      "scale_readings": {
+        "piece_gross_mg": 38120,
+        "scrap_mg": 500,
+        "dust_mg": 0,
+        "dust_note": "Dust is swept monthly; this order logs 0 mg. The DUST_CREDIT event type is shown on #11 and the other karigars' orders."
+      },
+      "intake_expected": {
+        "order": "#14",
+        "piece_gross_mg": 38120,
+        "stone_mg": 0,
+        "net_gold_mg": 38120,
+        "scrap_mg": 500,
+        "dust_mg": 0,
+        "note_tag": "REWORK_SOLDER",
+        "confidence_min": 0.8,
+        "scale_matches_voice": true,
+        "rule": "Weights come from the scale readings; the transcript only fills order, note and tags (EC-4)."
+      },
+      "creates": [
+        {
+          "ref": "R6",
+          "type": "RETURN",
+          "order": "#14",
+          "gross_mg": 38120,
+          "stone_mg": 0,
+          "net_gold_mg": 38120,
+          "fineness": 916
+        },
+        {
+          "ref": "R7",
+          "type": "SCRAP_RETURN",
+          "order": "#14",
+          "gold_mg": 500,
+          "fineness": 916
+        }
+      ],
+      "api": [
+        "POST /v1/voice/intake",
+        "POST /v1/scale/readings",
+        "POST /v1/events",
+        "POST /v1/events/{id}/signatures"
+      ],
+      "signs": [
+        "p-lakshmi",
+        "p-rafiq"
+      ]
+    },
+    {
+      "id": "S05",
+      "day": "Sat",
+      "clock": "2026-10-17T18:00:00+05:30",
+      "persona": "p-suresh",
+      "route": "/stage",
+      "title": "Run the week",
+      "action": "reconcile.run",
+      "api": [
+        "POST /v1/reconciliation/runs",
+        "GET /v1/reconciliation/runs/{id}"
+      ],
+      "expected": {
+        "orders_checked": 3,
+        "flags": 1,
+        "rows": [
+          {
+            "order": "#12",
+            "karigar_id": "p-manju",
+            "issued_gold_mg": 25000,
+            "returned_gold_mg": 24480,
+            "loss_mg": 520,
+            "allowed_mg": 625,
+            "variance_mg": -105,
+            "variance_fine_mg": -96,
+            "flag": false
+          },
+          {
+            "order": "#13",
+            "karigar_id": "p-subrata",
+            "issued_gold_mg": 30000,
+            "returned_gold_mg": 28870,
+            "loss_mg": 1130,
+            "allowed_mg": 1200,
+            "variance_mg": -70,
+            "variance_fine_mg": -64,
+            "flag": false
+          },
+          {
+            "order": "#14",
+            "karigar_id": "p-rafiq",
+            "issued_gold_mg": 40000,
+            "returned_gold_mg": 38620,
+            "loss_mg": 1380,
+            "allowed_mg": 1000,
+            "variance_mg": 380,
+            "variance_fine_mg": 348,
+            "flag": true
+          }
+        ]
+      },
+      "agent_explanation_en": "Order #14 lost 1.380 g against an agreed 1.000 g (2.50% of 40.000 g). That is 0.380 g over the norm, 0.348 g of fine gold, about ₹5,188 at today's rate. Rafiq's return note mentions a cracked solder joint that was redone. Orders #12 and #13 closed inside their norms. Suggest asking Rafiq before settlement."
+    },
+    {
+      "id": "S06",
+      "day": "Sat",
+      "clock": "2026-10-17T18:20:00+05:30",
+      "persona": "p-rafiq",
+      "route": "/stage",
+      "title": "Rafiq disputes by voice",
+      "action": "dispute.open",
+      "voice_note": {
+        "lang": "bn",
+        "cached_audio": "seed/audio/S06_dispute_bn.webm",
+        "transcript": "ঝালাইয়ের জোড় ফেটে গেছিল, পুরো জোড় আবার করতে হয়েছে। ওতে সোনা গেছে, আমি পুরোটা দেব না।",
+        "en": "The solder joint cracked, I had to redo the whole joint. Gold went in that, I won't pay all of it."
+      },
+      "creates": [
+        {
+          "ref": "R8",
+          "type": "DISPUTE_OPEN",
+          "order": "#14",
+          "disputed_variance_mg": 380,
+          "reason_code": "REWORK"
+        }
+      ],
+      "api": [
+        "POST /v1/voice/intake",
+        "POST /v1/disputes",
+        "POST /v1/disputes/{id}/messages"
+      ],
+      "signs": [
+        "p-rafiq",
+        "p-suresh"
+      ],
+      "sign_note": "Suresh's signature on DISPUTE_OPEN means 'seen', not 'agreed'.",
+      "flag_readback": {
+        "lang": "bn",
+        "text": "অর্ডার চোদ্দো: ঠিক করা আড়াই শতাংশের চেয়ে শূন্য দশমিক তিন আট শূন্য গ্রাম বেশি ঘাটতি।",
+        "en": "Order 14: 0.380 g more wastage than the agreed 2.5%.",
+        "cached_audio": "seed/audio/S06_flag_bn.mp3"
+      }
+    },
+    {
+      "id": "S07",
+      "day": "Sat",
+      "clock": "2026-10-17T19:05:00+05:30",
+      "persona": "p-suresh",
+      "route": "/stage",
+      "title": "Resolve with two signatures",
+      "action": "dispute.resolve",
+      "resolution": {
+        "rework_allowance_mg": 130,
+        "carried_shortfall_mg": 250,
+        "carried_shortfall_fine_mg": 229,
+        "note_en": "Both accept 0.130 g as rework wastage. 0.250 g gross (0.229 g fine) stays on Rafiq's balance."
+      },
+      "creates": [
+        {
+          "ref": "R9",
+          "type": "ADJUSTMENT",
+          "order": "#14",
+          "allowance_mg": 130,
+          "reason_code": "REWORK_ALLOWANCE"
+        },
+        {
+          "ref": "R10",
+          "type": "DISPUTE_RESOLVE",
+          "order": "#14",
+          "resolved_variance_mg": 250
+        }
+      ],
+      "api": [
+        "POST /v1/disputes/{id}/resolve",
+        "POST /v1/events/{id}/signatures"
+      ],
+      "signs": [
+        "p-suresh",
+        "p-rafiq"
+      ],
+      "proposal_readback": {
+        "lang": "bn",
+        "text": "সুরেশ প্রস্তাব দিয়েছেন: শূন্য দশমিক এক তিন শূন্য গ্রাম মেরামতের ঘাটতি হিসেবে মানা হবে। বাকি শূন্য দশমিক দুই পাঁচ শূন্য গ্রাম আপনার খাতায় থাকবে।",
+        "en": "Suresh proposes: 0.130 g accepted as rework wastage. The remaining 0.250 g stays on your account.",
+        "cached_audio": "seed/audio/S07_proposal_bn.mp3"
+      }
+    },
+    {
+      "id": "S08",
+      "day": "Sun",
+      "clock": "2026-10-18T11:00:00+05:30",
+      "persona": "p-suresh",
+      "route": "/stage",
+      "title": "Settlement: two ticks",
+      "action": "settlement.create+approve",
+      "api": [
+        "POST /v1/settlements",
+        "POST /v1/settlements/{id}/approve"
+      ],
+      "signs": [
+        "p-suresh",
+        "p-rafiq"
+      ],
+      "creates": [
+        {
+          "ref": "R11",
+          "type": "SETTLEMENT",
+          "period": "2026-10-12/2026-10-18"
+        }
+      ],
+      "expected": {
+        "karigar_id": "p-rafiq",
+        "orders_closed": [
+          "#14"
+        ],
+        "opening_gold_with_karigar_mg": 18000,
+        "issued_mg": 40000,
+        "returned_net_gold_mg": 38120,
+        "scrap_mg": 500,
+        "dust_credit_mg": 0,
+        "allowed_wastage_mg": 1000,
+        "approved_adjustment_mg": 130,
+        "carried_shortfall_mg": 250,
+        "carried_shortfall_fine_mg": 229,
+        "open_orders_mg": 18000,
+        "closing_gold_with_karigar_mg": 18250,
+        "closing_fine_mg": 16717,
+        "labour_inr": 4800,
+        "labour_paise": 480000,
+        "labour_note": "HUNCH seed value",
+        "gst_rate_bp": 500,
+        "gst_paise": 24000,
+        "karigar_gst_registered": true,
+        "payable_paise": 504000,
+        "gold_settled_in": "grams (carried forward), never netted against rupees (EC-12)"
+      }
+    },
+    {
+      "id": "S09",
+      "day": "Sun",
+      "clock": "2026-10-18T11:02:00+05:30",
+      "persona": "p-suresh",
+      "route": "/stage",
+      "title": "UPI intent (simulated)",
+      "action": "payment.intent",
+      "api": [
+        "POST /v1/settlements/{id}/payment-intent"
+      ],
+      "expected": {
+        "status": "simulated",
+        "amount_paise": 504000,
+        "uri_template": "upi://pay?pa={TOLA_UPI_VPA}&pn={TOLA_UPI_PAYEE_NAME}&am=5040.00&cu=INR&tn=Tola%20wk42%20Order%2014",
+        "label": "Simulated, no money moves"
+      }
+    },
+    {
+      "id": "S10",
+      "day": "Sun",
+      "clock": "2026-10-18T11:10:00+05:30",
+      "persona": "p-rafiq",
+      "route": "/stage",
+      "title": "Rafiq shares his Work Passport",
+      "action": "passport.share",
+      "api": [
+        "POST /v1/passport/shares"
+      ],
+      "share": {
+        "recipient": "p-meera",
+        "scope": [
+          "grams_handled",
+          "on_time",
+          "variance_vs_norm",
+          "disputes"
+        ],
+        "window_days": 180,
+        "expires_in_days": 7
+      },
+      "expected": {
+        "window": "2026-04-21/2026-10-18",
+        "orders": 15,
+        "grams_handled_mg": 194000,
+        "returned": 14,
+        "on_time": 13,
+        "on_time_pct": 92.9,
+        "allowed_wastage_mg": 8794,
+        "actual_wastage_mg": 7490,
+        "approved_adjustment_mg": 130,
+        "net_variance_mg": -1434,
+        "allowance_used_pct": 83.7,
+        "disputes_opened": 1,
+        "disputes_resolved": 1,
+        "dispute_resolution_minutes": 45,
+        "jewellers_on_tola": 1,
+        "jewellers_total_declared": 3
+      }
+    },
+    {
+      "id": "S11",
+      "day": "Sun",
+      "clock": "2026-10-18T11:12:00+05:30",
+      "persona": "p-meera",
+      "route": "/lender/passport/{token}",
+      "title": "Lender view (mocked, labelled)",
+      "action": "passport.view",
+      "api": [
+        "GET /v1/passport/{token}"
+      ],
+      "banner": "Mock lender view. Tola does not score or lend. Data shared by the karigar, revocable."
+    },
+    {
+      "id": "S12",
+      "day": "Sun",
+      "clock": "2026-10-18T11:15:00+05:30",
+      "persona": "p-suresh",
+      "route": "/settlements/{id}",
+      "title": "GST job-work draft",
+      "action": "gst.draft",
+      "api": [
+        "GET /v1/settlements/{id}/gst-draft"
+      ],
+      "watermark": "DRAFT, for your CA. Not filed."
+    },
+    {
+      "id": "S13",
+      "day": "Sun",
+      "clock": "2026-10-18T11:16:00+05:30",
+      "persona": "p-suresh",
+      "route": "/ledger",
+      "title": "Verify the chain",
+      "action": "ledger.verify",
+      "api": [
+        "GET /v1/ledger?karigarId=p-rafiq&shopId=shop-shetty"
+      ],
+      "expected": {
+        "story_week_events_rafiq": 7,
+        "events_rafiq_R1_R11_incl_R4s": 12,
+        "chain_valid": true,
+        "all_events_two_signatures": true,
+        "tamper_demo": "edit one stored byte of R6 in a sandbox copy -> status 'broken at event R6'; reset restores"
+      }
+    }
+  ],
+  "fallback": {
+    "_comment": "Used when AI_FALLBACK_MODE=cached or a live call fails or exceeds its timeout. Keys match step ids.",
+    "timeouts_ms": {
+      "sarvam_tts": 3500,
+      "sarvam_stt": 5000,
+      "lyzr_agent": 6000
+    },
+    "audio_dir": "seed/audio",
+    "ai_cache_dir": "seed/ai-cache"
+  },
+  "scale_sources": [
+    "serial",
+    "ble",
+    "display_ocr",
+    "simulated",
+    "manual_dual"
+  ]
+}

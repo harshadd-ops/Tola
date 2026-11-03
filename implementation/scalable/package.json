@@ -1,0 +1,64 @@
+{
+  "name": "tola-scalable",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Tola v1 (production path): offline-first PWA, FastAPI modular monolith, workers. Two signatures on every gram.",
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@12.14.0",
+  "engines": {
+    "node": ">=22.12.0",
+    "pnpm": ">=12.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @tola/web dev",
+    "build": "pnpm -r --workspace-concurrency=2 build",
+    "lint": "pnpm -r lint && pnpm api:lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "pnpm -r typecheck && pnpm api:typecheck",
+    "test": "pnpm -r test && pnpm api:test",
+    "test:e2e": "pnpm --filter @tola/web test:e2e",
+    "test:contract": "uv run --directory services/api schemathesis run ../../../../api/openapi.yaml --url http://localhost:8000 --checks all --max-examples 50",
+    "test:load": "docker run --rm -i --network host -v \"$PWD/tests/load:/scripts\" grafana/k6 run /scripts/sync-peak.js",
+    "infra:up": "docker compose -f infra/docker/docker-compose.yml up -d postgres redis",
+    "infra:down": "docker compose -f infra/docker/docker-compose.yml down",
+    "infra:reset": "docker compose -f infra/docker/docker-compose.yml down -v",
+    "stack:up": "docker compose -f infra/docker/docker-compose.yml --profile app up -d --build",
+    "api:dev": "uv run --directory services/api uvicorn tola_api.main:app --reload --host 0.0.0.0 --port 8000",
+    "api:lint": "uv run --directory services/api ruff check . && uv run --directory services/api ruff format --check .",
+    "api:typecheck": "uv run --directory services/api mypy src",
+    "api:test": "uv run --directory services/api pytest",
+    "worker:dev": "uv run --directory services/api tola-worker",
+    "db:migrate": "uv run --directory services/api alembic upgrade head",
+    "db:revision": "uv run --directory services/api alembic revision --autogenerate -m",
+    "seed": "uv run --directory services/api python -m tola_api.scripts.seed --synthetic --shops 3 --karigars-per-shop 8",
+    "prepare": "cd ../.. && husky implementation/scalable/.husky || true"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "21.2.4",
+    "@commitlint/config-conventional": "21.2.4",
+    "eslint": "10.13.0",
+    "eslint-config-prettier": "10.1.8",
+    "husky": "9.1.7",
+    "lint-staged": "17.6.0",
+    "prettier": "3.9.10",
+    "typescript": "~5.9.0",
+    "typescript-eslint": "8.72.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,mjs,cjs}": ["eslint --fix", "prettier --write"],
+    "*.{json,md,yml,yaml,css}": ["prettier --write"],
+    "services/**/*.py": ["uv run --directory services/api ruff check --fix", "uv run --directory services/api ruff format"]
+  },
+  "commitlint": {
+    "extends": ["@commitlint/config-conventional"],
+    "rules": {
+      "scope-enum": [
+        2,
+        "always",
+        ["web", "ui", "ledger-core", "api", "worker", "ai", "infra", "ci", "docs", "deps", "openapi", "demo", "release"]
+      ],
+      "subject-case": [0]
+    }
+  }
+}

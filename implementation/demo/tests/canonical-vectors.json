@@ -1,0 +1,29 @@
+{
+  "vectors": [
+    {
+      "name": "simple_sorted_keys",
+      "input": {
+        "z": 1,
+        "a": "hello",
+        "m": [3, 2, 1],
+        "nested": {
+          "b": true,
+          "a": null
+        }
+      },
+      "canonical_json": "{\"a\":\"hello\",\"m\":[3,2,1],\"nested\":{\"a\":null,\"b\":true},\"z\":1}",
+      "sha256_hex": "d35b1c50b1d7ca187c0796d3a55f233686fd0508c70c06c90f6dc8d29c605719"
+    },
+    {
+      "name": "bengali_utf8_unescaped",
+      "input": {
+        "order_code": "#14",
+        "issued_gross_mg": 40000,
+        "purity_fineness": 916,
+        "note": "হালকা সোল্ডার ফ্লাক্স দাগ আছে, তবে ওজন ঠিক আছে।"
+      },
+      "canonical_json": "{\"issued_gross_mg\":40000,\"note\":\"হালকা সোল্ডার ফ্লাক্স দাগ আছে, তবে ওজন ঠিক আছে।\",\"order_code\":\"#14\",\"purity_fineness\":916}",
+      "sha256_hex": "4f3ef5f2cf89c4f1d825152f0be4a35fd8209f6ef9bd4522f268567346fd5436"
+    }
+  ]
+}

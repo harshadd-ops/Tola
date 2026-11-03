@@ -1,0 +1,110 @@
+/* ---------- Keyframes ---------- */
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-1.5deg); }
+  50% { transform: rotate(1.2deg); }
+  75% { transform: rotate(-0.8deg); }
+  90% { transform: rotate(0.5deg); }
+}
+
+/* Concentric pulse rings: six cycles, then they rest */
+@keyframes pulse-ring {
+  from { transform: scale(0.15); opacity: 0.9; }
+  to { transform: scale(1); opacity: 0; }
+}
+
+.pulse-ring {
+  opacity: 0;
+  animation: pulse-ring 2s cubic-bezier(0.22, 1, 0.36, 1) 6 both;
+}
+
+/* Compositor-only ring (transform + opacity): no per-frame style or paint work on the main thread */
+@keyframes gaze-ring {
+  0% { transform: scale(1); opacity: 0.55; }
+  70%, 100% { transform: scale(2.6); opacity: 0; }
+}
+
+.gaze-dot {
+  position: relative;
+}
+
+.gaze-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--orange);
+  animation: gaze-ring 1.8s var(--ease-reveal) infinite;
+}
+
+@keyframes marquee {
+  to { transform: translateX(-50%); }
+}
+
+/* Seamless CSS marquee */
+.ticker {
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: marquee var(--marquee-duration, 40s) linear infinite;
+}
+
+.ticker-row {
+  display: flex;
+  align-items: center;
+  gap: var(--marquee-gap, 2.5rem);
+  padding-right: var(--marquee-gap, 2.5rem);
+}
+
+.ticker:hover .ticker-track,
+.ticker:focus-within .ticker-track,
+.ticker.is-paused .ticker-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .ticker-track {
+    animation: none !important;
+    flex-wrap: wrap;
+    width: auto;
+    justify-content: center;
+  }
+
+  .ticker-row[aria-hidden="true"] {
+    display: none;
+  }
+
+  /* Photos stay a single row the user scrolls themselves */
+  .ticker--photos {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+  }
+
+  .ticker--photos .ticker-track {
+    flex-wrap: nowrap;
+    width: max-content;
+  }
+
+  .ticker--photos li {
+    scroll-snap-align: center;
+  }
+}

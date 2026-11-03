@@ -1,0 +1,363 @@
+/*
+ * Tola design tokens (demo build)
+ * Derived from the Vakyam tokens (docs/02-design/reference/vakyam-tokens.css), which adapt the Sarvam language:
+ * warm off-white editorial canvas, serif display + grotesk body, hairlines over shadows,
+ * brand colour delivered as blurred LIGHT. Tola's arc runs ember -> amber -> gold -> periwinkle -> mist.
+ * Indigo stays the working accent; slate pill buttons; DM Mono for every gram figure.
+ *
+ * Import order (src/styles/index.css):  tailwindcss -> @heroui/styles -> tokens.css -> the rest.
+ * Same structure as Vakyam: primitives, ramps, neutrals, radius, HeroUI semantic mapping, fonts, motion.
+ */
+:root,
+.light,
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* ---------- Light-as-colour primitives (the arc) ---------- */
+  --ember: #b43e00;       /* molten core of the arc; AA-safe on warm white */
+  --orange: #c2410c;      /* kept from Vakyam for shared components */
+  --amber: #ffb053;
+  --gold: #e9b949;        /* Tola's own stop: the colour of 22K under shop light */
+  --gold-deep: #7a5300;   /* gold text on white needs the deep stop for AA contrast */
+  --peri: #a5bbfc;
+  --mist: #f4f7ff;
+
+  /* Gold ramp (chips, gram badges, settlement highlights) */
+  --gold-50: #fffaeb;
+  --gold-100: #fff1c7;
+  --gold-200: #fde59a;
+  --gold-300: #7a5300;    /* AA-compliant foreground gold on light surfaces */
+  --gold-400: #7a5300;    /* AA-compliant foreground gold on light surfaces */
+  --gold-500: #e9b949;    /* Primary gold pill background (paired with dark --text-on-gold) */
+  --gold-600: #7a5300;
+  --gold-700: #664806;
+  --gold-800: #4d3504;
+  --gold-900: #3d2b04;
+  --gold-tint: #fffbeb;
+  --gold-line: #d4a12f;
+
+  /* Indigo ramp (working accent: links, focus, selected states) */
+  --indigo-50: #fafcff;
+  --indigo-100: #e8effc;
+  --indigo-200: #d2dff9;
+  --indigo-300: #a7c0f1;
+  --indigo-400: #81a0e9;
+  --indigo-500: #6a88e2;
+  --indigo-600: #4338ca;
+  --indigo-700: #3730a3;
+  --indigo-800: #312e81;
+  --indigo-900: #1e1b4b;
+
+  /* Supporting hues for chips and glyphs (AA-verified on light surfaces) */
+  --green-50: #f0fdf4;
+  --green-200: #bbf7d0;
+  --green-600: #166534;
+  --emerald-400: #166534;
+  --red-50: #fef2f2;
+  --red-200: #fecaca;
+  --red-600: #991b1b;
+  --pink-50: #fdf2f8;
+  --pink-200: #fbcfe8;
+  --pink-600: #9d174d;
+  --yellow-50: #fffbeb;
+  --yellow-200: #fde68a;
+  --yellow-700: #784f08;
+  --orange-50: #fff7ed;
+  --orange-200: #fed7aa;
+  --orange-700: #9a3412;
+
+  /* ---------- Neutrals ---------- */
+  --bg: #fcfcfc;
+  --bg-2: #f5f5f5;
+  --bg-3: #efefef;
+  --bg-4: #e4e4e4;
+  --card: #ffffff;
+  --ink: #171717;
+  --ink-2: #333333;
+  --ink-3: #4d4d4d;
+  --ink-4: #525252;
+  --hairline: #ebebeb;
+  --hairline-strong: #d6d6d6;
+  --slate: #1f2026;
+  --slate-800: #27272a;
+  --slate-950: #09090b;
+  --nav: rgba(252, 252, 252, 0.85); /* translucent: content scrolls under (Apple material) */
+  --scrim: rgba(20, 20, 30, 0.35);
+  --shadow-sm: 0 1px 2px rgba(33, 33, 90, 0.05);
+  --shadow-card: 0 1px 2px rgba(33, 33, 90, 0.05), 0 8px 24px -8px rgba(33, 33, 145, 0.1);
+  --shadow-card-hover: 0 1px 2px rgba(33, 33, 90, 0.05), 0 14px 36px -12px rgba(33, 33, 145, 0.16);
+  --shadow-surface: 0 1px 2px rgba(33, 33, 90, 0.04), 0 28px 64px -28px rgba(33, 33, 145, 0.16);
+  --shadow-device: 0 2px 4px rgba(0, 0, 0, 0.05), 0 50px 90px -30px rgba(33, 33, 145, 0.35);
+  --shadow-sheet: 0 -1px 0 var(--hairline), 0 -24px 64px -24px rgba(33, 33, 145, 0.22);
+  --shadow-gold: 0 1px 2px rgba(122, 83, 0, 0.12), 0 6px 16px -4px rgba(212, 161, 47, 0.28);
+
+  /* ---------- Semantic surface & text aliases ---------- */
+  --bg-base: var(--bg);
+  --bg-surface: var(--card);
+  --surface-elevated: var(--card);
+  --bg-elevated: var(--bg-2);
+  --bg-glass: var(--bg-2);
+  --surface-raised: var(--bg-2);
+  --surface-sunken: var(--bg-3);
+  --text-primary: var(--ink);
+  --text-secondary: var(--ink-2);
+  --text-muted: var(--ink-3);
+  --text-on-gold: #171203;
+  --border-subtle: var(--hairline-strong);
+  --border-strong: #b8b8b8;
+  --border-gold: #c9961a;
+  --gold-hairline: var(--gold-line);
+
+  /* ---------- Ledger semantics (Tola-specific) ---------- */
+  --tick-pending: #525252;
+  --tick-pending-bg: var(--bg-3);
+  --tick-signed: var(--indigo-700);
+  --tick-sealed: #166534;
+  --tick-sealed-bg: #f0fdf4;
+  --chain-link: var(--gold-500);
+  --chain-broken: #991b1b;
+  --chain-broken-bg: #fef2f2;
+  --variance-ok: #166534;
+  --variance-flag: #b43e00;
+  --variance-flag-bg: #fff7ed;
+  --dispute-open: #9d174d;
+  --dispute-open-bg: #fdf2f8;
+  --simulated: #784f08;
+  --simulated-bg: #fffbeb;
+  --ok: #166534;
+  --warn: #b43e00;
+
+  /* ---------- Radius (nested surfaces use outer - padding so corners stay concentric) ---------- */
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --r-xl: 32px;
+  --r-pill: 9999px;
+  --r-device: 44px;
+
+  /* ---------- Touch (F-14: 44 px minimum targets) ---------- */
+  --tap-min: 44px;
+  --tap-karigar: 56px; /* karigar phone: bigger, thumb-first */
+
+  /* ---------- HeroUI v3 semantic mapping ---------- */
+  --background: var(--bg);
+  --foreground: var(--ink);
+  --surface: var(--card);
+  --surface-foreground: var(--ink);
+  --surface-secondary: var(--bg-2);
+  --surface-secondary-foreground: var(--ink);
+  --surface-tertiary: var(--bg-3);
+  --surface-tertiary-foreground: var(--ink);
+  --overlay: #ffffff;
+  --overlay-foreground: var(--ink);
+  --muted: var(--ink-3);
+  --default: var(--bg-2);
+  --default-foreground: var(--ink);
+  --accent: var(--slate);
+  --accent-foreground: #ffffff;
+  --success: var(--tick-sealed);
+  --success-foreground: #ffffff;
+  --warning: var(--ember);
+  --warning-foreground: #ffffff;
+  --danger: var(--red-600);
+  --danger-foreground: #ffffff;
+  --segment: #ffffff;
+  --segment-foreground: var(--indigo-800);
+  --border: var(--hairline-strong);
+  --separator: var(--hairline);
+  --focus: var(--indigo-600);
+  --link: var(--indigo-800);
+  --radius: 1rem;
+  --surface-shadow: none;
+  --overlay-shadow: 0 0 40px rgba(0, 0, 0, 0.06), 0 0 0 1px var(--hairline);
+
+  /* ---------- Type ---------- */
+  --font-display: "Fraunces Variable", "Mukta", "Noto Sans Bengali", "Noto Sans Kannada", Georgia, serif;
+  --font-sans: "Figtree Variable", "Mukta", "Noto Sans Bengali", "Noto Sans Kannada", system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, monospace; /* every gram figure, hash and timestamp */
+
+  /* Size-specific tracking (Apple: tighten large, loosen small) */
+  --track-display: -0.025em;
+  --track-h2: -0.02em;
+  --track-body: 0;
+  --track-label: 0.04em;
+  --track-mono: -0.01em;
+
+  /* ---------- Motion tokens (CSS side; JS springs live in src/lib/springs.ts) ---------- */
+  --ease-cw: cubic-bezier(0.2, 0, 0, 1);
+  --ease-reveal: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-nav: cubic-bezier(0.22, 1, 0.36, 1);
+  --press-scale: 0.97;
+  --press-ms: 100ms;
+}
+
+.dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --ember: #ff8547;
+  --orange: #ff9447;
+  --amber: #ffb86b;
+  --gold: #f0c75e;
+  --gold-deep: #f0c75e; /* on dark, the bright stop is the legible one */
+  --peri: #a5bbfc;
+  --mist: #0e1020;
+
+  --gold-50: #1f1906;
+  --gold-100: #2e250a;
+  --gold-200: #4a3b10;
+  --gold-300: #f7d06a;
+  --gold-400: #f0c75e;
+  --gold-500: #e9b949;
+  --gold-600: #f0c75e;
+  --gold-700: #f7d98a;
+  --gold-tint: #231c07;
+  --gold-line: #8f6b18;
+
+  --indigo-50: #12142a;
+  --indigo-100: #181b38;
+  --indigo-200: #2a3070;
+  --indigo-300: #4a57b8;
+  --indigo-600: #8fa3f2;
+  --indigo-700: #a3b4f7;
+  --indigo-800: #b4c3ff;
+  --indigo-900: #c9d5ff;
+
+  --green-50: #142012;
+  --green-200: #2c4a1e;
+  --green-600: #86efac;
+  --emerald-400: #4ade80;
+  --red-50: #2a120e;
+  --red-200: #5a2418;
+  --red-600: #fca5a5;
+  --pink-50: #2a1420;
+  --pink-200: #5a2a42;
+  --pink-600: #f9a8d4;
+  --yellow-50: #261f0e;
+  --yellow-200: #4d3d14;
+  --yellow-700: #fde047;
+  --orange-50: #26150c;
+  --orange-200: #55301a;
+  --orange-700: #fdba74;
+
+  --bg: #0c0c0f;
+  --bg-2: #141418;
+  --bg-3: #1b1b20;
+  --bg-4: #26262c;
+  --card: #141418;
+  --ink: #f4f4f6;
+  --ink-2: #d4d4d8;
+  --ink-3: #a1a1aa;
+  --ink-4: #a1a1aa;
+  --hairline: #222228;
+  --hairline-strong: #32323a;
+  --slate: #f2f2f4;
+  --slate-800: #27272a;
+  --slate-950: #09090b;
+  --nav: rgba(12, 12, 15, 0.8);
+  --scrim: rgba(0, 0, 0, 0.6);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 24px -8px rgba(0, 0, 0, 0.65);
+  --shadow-card-hover: 0 1px 2px rgba(0, 0, 0, 0.5), 0 14px 36px -12px rgba(0, 0, 0, 0.7);
+  --shadow-surface: 0 0 0 1px rgba(255, 255, 255, 0.02), 0 28px 64px -28px rgba(0, 0, 0, 0.75);
+  --shadow-device: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 50px 100px -30px rgba(165, 187, 252, 0.25);
+  --shadow-sheet: 0 -1px 0 var(--hairline), 0 -24px 64px -24px rgba(0, 0, 0, 0.8);
+  --shadow-gold: 0 1px 2px rgba(0, 0, 0, 0.5), 0 6px 16px -4px rgba(233, 185, 73, 0.2);
+
+  --bg-base: var(--bg);
+  --bg-surface: var(--card);
+  --surface-elevated: var(--card);
+  --bg-elevated: var(--bg-3);
+  --bg-glass: var(--bg-3);
+  --surface-raised: var(--bg-3);
+  --surface-sunken: var(--bg-2);
+  --text-primary: var(--ink);
+  --text-secondary: var(--ink-2);
+  --text-muted: var(--ink-3);
+  --text-on-gold: #141002;
+  --border-subtle: var(--hairline-strong);
+  --border-strong: #4a4a56;
+  --border-gold: #9a7315;
+  --gold-hairline: var(--gold-line);
+
+  --tick-pending: #a1a1aa;
+  --tick-pending-bg: var(--bg-3);
+  --tick-signed: var(--indigo-700);
+  --tick-sealed: #86efac;
+  --tick-sealed-bg: #14281d;
+  --chain-link: var(--gold-500);
+  --chain-broken: #fca5a5;
+  --chain-broken-bg: #2a1215;
+  --variance-ok: #86efac;
+  --variance-flag: #ff9457;
+  --variance-flag-bg: #291810;
+  --dispute-open: #f9a8d4;
+  --dispute-open-bg: #2a1420;
+  --simulated: #fde047;
+  --simulated-bg: #261f0e;
+  --ok: #86efac;
+  --warn: #ff9457;
+
+  --background: var(--bg);
+  --foreground: var(--ink);
+  --surface: var(--card);
+  --surface-foreground: var(--ink);
+  --surface-secondary: var(--bg-3);
+  --surface-secondary-foreground: var(--ink);
+  --surface-tertiary: var(--bg-4);
+  --surface-tertiary-foreground: var(--ink);
+  --overlay: #18181c;
+  --overlay-foreground: var(--ink);
+  --muted: var(--ink-3);
+  --default: var(--bg-3);
+  --default-foreground: var(--ink);
+  --accent: #f2f2f4;
+  --accent-foreground: #0c0c0f;
+  --success: var(--tick-sealed);
+  --success-foreground: #0c0c0f;
+  --warning: var(--ember);
+  --warning-foreground: #000000;
+  --danger: var(--red-600);
+  --danger-foreground: #0c0c0f;
+  --segment: #2a2a31;
+  --segment-foreground: var(--ink);
+  --border: var(--hairline-strong);
+  --separator: var(--hairline);
+  --focus: var(--indigo-600);
+  --link: var(--indigo-800);
+}
+
+/* ---------- Script-specific faces (F-14) ---------- */
+html[lang="hi"] {
+  --font-display: "Mukta", "Fraunces Variable", serif;
+  --font-sans: "Mukta", "Figtree Variable", system-ui, sans-serif;
+}
+html[lang="bn"] {
+  --font-display: "Noto Sans Bengali", "Fraunces Variable", serif;
+  --font-sans: "Noto Sans Bengali", "Figtree Variable", system-ui, sans-serif;
+}
+html[lang="kn"] {
+  --font-display: "Noto Sans Kannada", "Fraunces Variable", serif;
+  --font-sans: "Noto Sans Kannada", "Figtree Variable", system-ui, sans-serif;
+}
+/* Indic scripts have tall ascenders/descenders: open the leading, drop negative tracking */
+html[lang="hi"],
+html[lang="bn"],
+html[lang="kn"] {
+  --track-display: 0;
+  --track-h2: 0;
+}
+
+/* ---------- Accessibility preferences (Apple: three independent signals) ---------- */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --nav: var(--bg);
+  }
+}
+@media (prefers-contrast: more) {
+  :root {
+    --hairline: #c8c8c8;
+    --hairline-strong: #9a9a9a;
+    --ink-3: #404040;
+  }
+}

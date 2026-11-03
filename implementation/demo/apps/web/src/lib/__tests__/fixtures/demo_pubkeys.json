@@ -1,0 +1,47 @@
+{
+  "sample_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "personas": {
+    "p-suresh": {
+      "seed_hex": "19638c1a797a0544c1b554a1366d113b499a9f4871baef73957ffdc25b3c5b87",
+      "pubkey_hex": "395d2de868caaa9f143ac3721ac9bf403b42ea78ea7da0360f09ec0a190086b2",
+      "pubkey_b64url": "OV0t6GjKqp8UOsNyGsm_QDtC6njqfaA2DwnsChkAhrI",
+      "sample_sig_hex": "f1cb1c3610bda2e02d94cd76885c28be52b993d4d9367c7d9f32ed9cd44c19ea761726aa075a5bfce6192d96b5913f554135293598aca975f5a67d1086cc6300"
+    },
+    "p-lakshmi": {
+      "seed_hex": "29d8aadb9df66052761c97539a5e138033d5029f139ef7ffcfda08409b2d1751",
+      "pubkey_hex": "81cb15d3066de00444b3a5071ac5bd41762003939714cadacac05553c4f7984b",
+      "pubkey_b64url": "gcsV0wZt4AREs6UHGsW9QXYgA5OXFMraysBVU8T3mEs",
+      "sample_sig_hex": "6e6fb3ad5816482020dec0ae8bd2787b8a1dd1f8c4d91c7a809290f68653a88b9580cb720896534b71ffef2aba88aba3c9ca39209cc34ad4da8f6f623f023f0f"
+    },
+    "p-rafiq": {
+      "seed_hex": "e19e6ed6bfc772ead0e85821a6f23fc4b80f89bd5bd223226f5550cdeac1485f",
+      "pubkey_hex": "83148f1758ec293d59b160cb13a1cb86c7b27295daaed4370969e8f910a08baf",
+      "pubkey_b64url": "gxSPF1jsKT1ZsWDLE6HLhseycpXartQ3CWno-RCgi68",
+      "sample_sig_hex": "34cfa3a8379d85123d93480ec8e9d086e4a0886c8bd8a7441619475af72bd6f457f6bbc24bbfe86bb9939835fd0637d83d58d2a959075048c40456cac68ac40d"
+    },
+    "p-manju": {
+      "seed_hex": "1f32fe06ae5d7c3fb1fb24cf07daa28feddce5bd6a9fc3b4965e595d4a1a549f",
+      "pubkey_hex": "2edb9abdd8bce611dfa259a1de50a16ece60a2ffe689ff7c8e19aa1ada56b3fc",
+      "pubkey_b64url": "Ltuavdi85hHfolmh3lChbs5gov_mif98jhmqGtpWs_w",
+      "sample_sig_hex": "80a76e9ff0aa5fefe02a19f967240dd471e940b3ed1480173b95a01784d07998d1cea65482b0e276a23a6d1af0e573d6dde728118f718d7cc4733a6943be4100"
+    },
+    "p-subrata": {
+      "seed_hex": "d85ec5741f1b04c19346dd5d53f9a150ecf75c971ec1e7a91d1ce7c2fad4e0fb",
+      "pubkey_hex": "b8a6a7f54fb105a56c4ee77961f814a880e228b4094b2a15d75e198b1761f07a",
+      "pubkey_b64url": "uKan9U-xBaVsTud5YfgUqIDiKLQJSyoV114Zixdh8Ho",
+      "sample_sig_hex": "d2c9a432987aae7a9df856419ab723741c17eca5fde42702fbf62092dec5eaf40119bc8e4825712b2ecdcf5685c81ca89c7b078ae0416e16141556e88ffe0e05"
+    },
+    "p-meera": {
+      "seed_hex": "0263febaca21b9d5dd38f3f7d25d136c45abbdf6ecaf32d9d8f76ba8a9427cc6",
+      "pubkey_hex": "6c5522e120a0a6da0d35635e6d94a6082fd24e7704498dc10623d0eecfaaa736",
+      "pubkey_b64url": "bFUi4SCgptoNNWNebZSmCC_STncESY3BBiPQ7s-qpzY",
+      "sample_sig_hex": "4fbda50b60d485a5b4b38245061486482d2584d886cee03f5c54132074735d81c5fff959533d73bbe1cd4b8e557a94f43e88c6f0812e9b5af31f84a01482c50f"
+    },
+    "server-witness": {
+      "seed_hex": "d0267330c09c436f7e02b947c50f4e22148c33a63cb152af15bfac9cb13daeb4",
+      "pubkey_hex": "03d16e255ecbdbdd0ed7ce518d5b3f983157f3f202bee4c608c96e11ae33c71c",
+      "pubkey_b64url": "A9FuJV7L290O185RjVs_mDFX8_ICvuTGCMluEa4zxxw",
+      "sample_sig_hex": "ff21900a14144e6a0904715c10dc34957d0107a55570b1dc59d56d1a833b0c5f6d1fd0ed64afc026a11362810d75d32db6895cbdda4ffdea5fe2e53988b25d04"
+    }
+  }
+}
