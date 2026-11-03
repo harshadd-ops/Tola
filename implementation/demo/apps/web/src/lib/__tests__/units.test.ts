@@ -28,6 +28,7 @@ describe("units.ts", () => {
     expect(formatInr(480000)).toBe("₹4,800.00");
     expect(formatInr(24000)).toBe("₹240.00");
     expect(spokenGrams(40000)).toBe("40.000 grams");
+    expect(formatGrams(194000)).toBe("194.000 g");
   });
 
   it("rejects non-integer inputs for mg and paise", () => {
