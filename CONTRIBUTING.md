@@ -42,4 +42,4 @@ The scope is the track or module. Breaking changes use `feat!:` and a `BREAKING 
 - Acceptance criteria of the linked US-xx pass.
 - Tests are added and CI is green.
 - Docs are updated.
-- The demo story still runs end to end (`npm run e2e` in demo).
+- The demo story still runs end to end (`npm run e2e` in `implementation/demo/apps/web`).
