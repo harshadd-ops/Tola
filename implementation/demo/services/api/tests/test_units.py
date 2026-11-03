@@ -28,6 +28,14 @@ def test_canonical_unit_figures() -> None:
     assert format_grams(-250) == "-0.250 g"
 
 
+def test_order_14_return_and_rework_invariants() -> None:
+    assert fine_mg(38_120, 916) == 34_918
+    assert fine_mg(500, 916) == 458
+    assert fine_mg(38_620, 916) == 35_376
+    assert fine_mg(130, 916) == 119
+    assert format_grams(38_620) == "38.620 g"
+
+
 def test_floats_and_bools_rejected() -> None:
     for bad in (40.0, 0.5, True, False, "40000"):
         with pytest.raises(TypeError):
