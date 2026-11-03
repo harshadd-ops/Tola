@@ -7,6 +7,7 @@ describe("story script (DEMO_SPEC §3)", () => {
     expect(STORY_STEPS.map((s) => s.id)).toEqual(Array.from({ length: 13 }, (_, i) => `S${String(i + 1).padStart(2, "0")}`));
     STORY_STEPS.forEach((s, i) => expect(s.index).toBe(i));
     const chapters = new Set(CHAPTERS.map((c) => c.id));
+    expect(CHAPTERS).toHaveLength(5);
     STORY_STEPS.forEach((s) => expect(chapters.has(s.chapter)).toBe(true));
   });
 
